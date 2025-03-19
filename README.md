@@ -63,7 +63,7 @@ Here is the plugin metadata structure that user will install it into the MerlMov
     "name": "My Example Plugin",
     "stream_type": "api",
     "image": "https://example.com/logo/example.png",
-    "logo_background_color": "#212121",
+    "logo_background_color": "#212121"
  }
  ```
 
