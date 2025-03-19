@@ -15,13 +15,13 @@ export type DirectLink = {
     subtitles: LinkModel[],
 }
 export type FetchFunction = (url: string, method?: "get" | "post", headers?: Record<any, any>) => Promise<FetchResponse>;
-export type FinalFunction = (data: DirectLink) => void;
+export type FinishFunction = (data: DirectLink) => void;
 export type ProgressFunction = (percent: number) => void;
 export type FailedFunction = (status?: number, message?: string) => void;
 export type WSSController = {
     fetch: FetchFunction,
     progress: ProgressFunction,
-    final: FinalFunction,
+    finish: FinishFunction,
     failed: FailedFunction,
 }
 export type WSSDataModel = {
@@ -156,7 +156,7 @@ export default class MerlMovieSDK {
                             {
                                 fetch: (url, method, headers) => _request(ws, url, method, headers),
                                 progress: (percent) => _send_progress(ws, percent),
-                                final: (data: DirectLink) => _send_final_result(ws, data),
+                                finish: (data: DirectLink) => _send_final_result(ws, data),
                                 failed: (status, message) => _send_failed(ws, status, message),
                             },
                             message,
