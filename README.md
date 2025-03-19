@@ -54,11 +54,11 @@ SDK.socket({
 
 ## Plugin Metadata Structure
 
-Here is the plugin metadata structure that user will install it into the MerlMovie app.
+👇 Here is the plugin metadata structure that user will install it into the MerlMovie app.
+The **embed_url** is the url where you're going to host the code above.
 
  ```json
  {
-    //The url where you're going to host the code above
     "embed_url": "wss://example.com/websocket_url",
     "name": "My Example Plugin",
     "stream_type": "api",
