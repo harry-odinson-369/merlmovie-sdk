@@ -14,7 +14,13 @@ export type DirectLink = {
     qualities: LinkModel[],
     subtitles: LinkModel[],
 }
-export type FetchFunction = (url: string, method?: "get" | "post", headers?: Record<any, any>) => Promise<FetchResponse>;
+export type FetchFunctionParams = {
+    url: string,
+    method?: "get" | "post",
+    headers?: Record<any, any>,
+    data?: any,
+}
+export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchResponse>;
 export type FinishFunction = (data: DirectLink) => void;
 export type ProgressFunction = (percent: number) => void;
 export type FailedFunction = (status?: number, message?: string) => void;
@@ -36,6 +42,24 @@ export type OnStreamData = {
     season?: string,
     episode?: string,
 }
+export type PluginMetadata = {
+    logo_background_color?: string,
+    stream_type: "api" | "internal" | "url" | "webview" | "iframe",
+    media_type?: "multi" | "movie" | "tv",
+    embed_url: string,
+    tv_embed_url?: string,
+    headers?: Record<any, any>,
+    name: string,
+    image?: string,
+    description?: string,
+    script?: string,
+    official_website: string,
+    use_imdb?: boolean,
+    visible?: "all" | "android" | "ios" | "development" | "none",
+    _docId?: string,
+    webview_type?: "webview_flutter" | "flutter_inappwebview",
+    allowed_domains?: string[],
+}
 
 export const WSSAction = {
     stream: "stream",
@@ -43,6 +67,21 @@ export const WSSAction = {
     result: "result",
     progress: "progress",
     failed: "failed",
+}
+
+function __throwError(msg: string) {
+    throw Error(`[MerlMovie SDK] ${msg}`);
+}
+
+export function CreatePlugin(props: PluginMetadata): PluginMetadata {
+    if (!props.embed_url) __throwError("embed_url value is required!");
+    if (!props.embed_url.startsWith("http") && !props.embed_url.startsWith("ws")) __throwError("embed_url must be start with http or ws protocol!");
+    if (!props.name) __throwError("name value is required!");
+    let metadata: Record<any, any> = {};
+    Object.entries(props).forEach(e => {
+        metadata[e[0]] = !e[1] ? null : e[1];
+    });
+    return JSON.parse(JSON.stringify(metadata));
 }
 
 function _paseWSSData(message: string): WSSDataModel | undefined {
@@ -64,59 +103,32 @@ function _paseWSSData(message: string): WSSDataModel | undefined {
     }
 }
 
-function _request(ws: WebSocket, url: string, method?: WSSFetchMethod, headers?: Record<any, any>): Promise<FetchResponse> {
+function _request(ws: WebSocket, url: string, method?: WSSFetchMethod, headers?: Record<any, any>, data?: any): Promise<FetchResponse> {
     return new Promise((resolve) => {
         ws.on("message", (raw) => {
             const data = _paseWSSData(raw.toString("utf-8"));
-
             if (data) {
                 if (data.action === WSSAction.result) {
-                    resolve({
-                        status: data.data.status,
-                        data: data.data.body,
-                        headers: data.data.headers,
-                    });
+                    resolve({ status: data.data.status, data: data.data.body, headers: data.data.headers });
                 }
             }
         });
-
-        ws.send(
-            JSON.stringify({
-                action: WSSAction.fetch,
-                data: {
-                    method: method || "get",
-                    url: url,
-                    headers: headers,
-                },
-            })
-        );
+        ws.send(JSON.stringify({ action: WSSAction.fetch, data: { method: method || "get", url: url, headers: headers, body: data } }));
     });
 }
 
 function _send_progress(ws: WebSocket, percent: number) {
-    ws.send(JSON.stringify({
-        action: WSSAction.progress,
-        data: {
-            progress: percent,
-        }
-    }));
+    ws.send(JSON.stringify({ action: WSSAction.progress, data: { progress: percent } }));
 }
 
-function _send_final_result(ws: WebSocket, data: DirectLink) {
-    ws.send(JSON.stringify({
-        action: WSSAction.result,
-        data: data,
-    }));
+async function _send_final_result(ws: WebSocket, data: DirectLink) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    ws.send(JSON.stringify({ action: WSSAction.result, data: data }));
 }
 
 function _send_failed(ws: WebSocket, status?: number, message?: string) {
-    ws.send(JSON.stringify({
-        action: WSSAction.failed,
-        data: {
-            status: status || 500,
-            message: message || "An unexpected error occurred while we tried to load the resource you've requested.",
-        }
-    }));
+    const msg = message || "An unexpected error occurred while we tried to load the resource you've requested.";
+    ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
 }
 
 export default class MerlMovieSDK {
@@ -154,7 +166,7 @@ export default class MerlMovieSDK {
                                 episode: data.data.e,
                             },
                             {
-                                fetch: (url, method, headers) => _request(ws, url, method, headers),
+                                fetch: ({ url, method, headers, data }) => _request(ws, url, method, headers, data),
                                 progress: (percent) => _send_progress(ws, percent),
                                 finish: (data: DirectLink) => _send_final_result(ws, data),
                                 failed: (status, message) => _send_failed(ws, status, message),

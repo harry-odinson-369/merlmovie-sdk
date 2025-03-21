@@ -1,6 +1,6 @@
 {
   "name": "merlmovie-sdk",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "description": "A MerlMovie SDK to handle WebSocket request from plugin.",
   "homepage": "https://merlmovie.org",
   "repository": {
@@ -17,7 +17,7 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "tsup && ./dist/test.js",
+    "test": "tsc ./test/test.ts && node ./test/test.js",
     "build": "tsup"
   },
   "devDependencies": {
