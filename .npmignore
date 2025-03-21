@@ -4,6 +4,8 @@
 
 .env
 .DS_Store
+.gitignore
+.gitattributes
 
 tsconfig.json
 tsup.config.ts
