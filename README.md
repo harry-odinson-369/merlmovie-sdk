@@ -11,11 +11,11 @@ The **MerlMovie SDK** was developed by Harry Odinson to greatly simplify Node.js
 👇 This code example creates a WebSocket handler and do the logic to get the direct video link and send it to the user.
 
 ```typescript
-import MerlMovieSDK, { DirectLink } from "merlmovie-sdk";
+import MerlMovieSDK, { DirectLink, sendTest } from "merlmovie-sdk";
 
 const SDK = new MerlMovieSDK({ PORT: 8080 });
 
-SDK.socket({
+SDK.handle({
     //This function will call when the user make a request and it contain all metadata needed.
     onStream(data, controller, message) {
         
@@ -48,6 +48,10 @@ SDK.socket({
 
     },
 });
+
+//You can use this function to test for the result.
+sendTest("ws://localhost:8080", { mediaId: "76479", season: "1", episode: "1" }).then(result => console.log(result));
+
 ```
 
 🎉✌️ Now you can run it on your self-hosted server normally.
