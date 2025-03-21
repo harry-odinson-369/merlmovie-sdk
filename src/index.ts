@@ -9,6 +9,7 @@ export type FetchResponse = {
 export type LinkModel = {
     name: string,
     link: string,
+    headers?: Record<any, any>,
 }
 export type DirectLink = {
     qualities: LinkModel[],
