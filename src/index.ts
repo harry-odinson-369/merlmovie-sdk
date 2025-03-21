@@ -19,6 +19,7 @@ export type FetchFunctionParams = {
     method?: "get" | "post",
     headers?: Record<any, any>,
     data?: any,
+    response_type?: "dynamic" | "bytes",
 }
 export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchResponse>;
 export type FinishFunction = (data: DirectLink) => void;
@@ -103,6 +104,15 @@ function _paseWSSData(message: string): WSSDataModel | undefined {
     }
 }
 
+function __checkJSON(text: string) {
+    try {
+        return JSON.parse(text);
+    } catch (err) {
+        console.error(err);
+        return text;
+    }
+}
+
 function _request(ws: WebSocket, url: string, method?: WSSFetchMethod, headers?: Record<any, any>, data?: any): Promise<FetchResponse> {
     return new Promise((resolve) => {
         ws.on("message", (raw) => {
@@ -131,6 +141,73 @@ function _send_failed(ws: WebSocket, status?: number, message?: string) {
     ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
 }
 
+export async function sendTest(targetHost: string, data: OnStreamData, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
+    return new Promise<DirectLink | undefined>(async resolve => {
+        const props = {
+            t: data.mediaType,
+            i: data.mediaId,
+            s: data.season,
+            e: data.episode,
+        }
+
+        const ws = await new Promise<WebSocket>(resolve => {
+            const ws = new WebSocket(targetHost);
+            const timer = setInterval(() => {
+                if (ws.readyState === 1) {
+                    clearInterval(timer);
+                    resolve(ws);
+                }
+            }, 10);
+        });
+
+        ws.on("message", async (raw) => {
+
+            const data = _paseWSSData(raw.toString("utf-8"));
+
+            if (data) {
+                if (data.action === WSSAction.result) {
+                    resolve(data.data as DirectLink);
+                    ws.close();
+                } else if (data.action === WSSAction.failed) {
+                    resolve(undefined);
+                    ws.close();
+                } else if (data.action === WSSAction.progress) {
+                    if (progress) progress(data.data.progress);
+                    if (!progress) console.log(`[MerlMovie SDK] Received test progress ${data.data.progress}% for mediaId ${props.i}${props.s && props.e ? ` season ${props.s} episode ${props.e}` : ""}`);
+                } else if (data.action === WSSAction.fetch) {
+                    const httpInfo = data.data as { url: string, headers: Record<any, any>, method: string, body: any, response_type: string };
+
+                    let resp: Response;
+
+                    if (httpInfo.method === "get") {
+                        resp = await fetch(httpInfo.url, { method: "GET", headers: httpInfo.headers });
+                    } else {
+                        resp = await fetch(httpInfo.url, { method: "POST", headers: httpInfo.headers, body: httpInfo.body });
+                    }
+
+
+                    const isBytesResponse = httpInfo.response_type === "bytes";
+
+                    let body: any;
+
+                    if (isBytesResponse) {
+                        const arrBuff = new Uint8Array(await resp.arrayBuffer());
+                        body = Array.from(arrBuff);
+                    } else {
+                        body = __checkJSON(await resp.text());
+                    }
+
+                    ws.send(JSON.stringify({ action: WSSAction.result, data: { status: resp.status, body, headers: resp.headers } }));
+                }
+            }
+
+        });
+
+        ws.send(JSON.stringify({ action: WSSAction.stream, data: props }));
+
+    });
+}
+
 export default class MerlMovieSDK {
 
     constructor(props?: { HOST?: string, PORT?: number }) {
@@ -141,7 +218,7 @@ export default class MerlMovieSDK {
     PORT: number;
     HOST?: string;
 
-    socket(props: {
+    handle(props: {
         onStream: (data: OnStreamData, controller: WSSController, message: IncomingMessage) => void,
         onConnection?: (ws: WebSocket, message: IncomingMessage) => void,
         onListening?: () => void,
