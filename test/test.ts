@@ -1,6 +1,19 @@
-import { sendTest } from "../src";
+import MerlMovieSDK from "../src";
 
-(async () => {
-    const result = await sendTest("ws://localhost:8080?provider=vidsrc.cc", { mediaId: "76479", season: "1", episode: "1" });
-    console.log(result);
-})();
+const SDK = new MerlMovieSDK({ PORT: 8080 });
+
+SDK.Handle({
+    onStream(data, controller, message) {
+        
+    },
+
+    onConnection(ws, message) {
+        console.log(message.socket.remoteAddress);
+        
+    },
+
+    onListening() {
+        console.log(`Server listening on port ${SDK.CONFIG?.PORT}...`);
+        
+    },
+});
