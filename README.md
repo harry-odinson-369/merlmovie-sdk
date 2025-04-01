@@ -11,8 +11,7 @@ The **MerlMovie SDK** was developed by Harry Odinson to greatly simplify Node.js
 👇 This code example creates a WebSocket handler and do the logic to get the direct video link and send it to the user.
 
 ```typescript
-import MerlMovieSDK from "merlmovie-sdk";
-import { DirectLink } from "merlmovie-sdk/types";
+import MerlMovieSDK, { DirectLink } from "merlmovie-sdk";
 
 const SDK = new MerlMovieSDK({ HOST: "localhost", PORT: 8080 });
 
@@ -54,8 +53,67 @@ SDK.Handle({
 SDK.SendTest("ws://localhost:8080", { mediaId: "76479", season: "1", episode: "1" }).then(result => console.log(result));
 
 ```
-
 🎉✌️ Now you can run it on your self-hosted server normally.
+
+👇 **How to use the SDK with [express](https://www.npmjs.com/package/express) server.**
+```typescript
+// server.js
+import express from 'express';
+import { createServer } from 'http';
+import MerlMovieSDK from 'merlmovie-sdk';
+import { WebSocketServer } from 'ws';
+
+const app = express();
+const port = 3000;
+
+// Create HTTP server
+const server = createServer(app);
+
+const WSS = new WebSocketServer({ server, path: "/ws" });
+
+const SDK = new MerlMovieSDK({ WSS });
+
+SDK.Handle({
+    async onStream(data, controller, request) {
+        
+        //Do the logic here and the result should be look like below
+        const result: DirectLink | undefined = {
+            qualities: [
+                {
+                    name: "Big Buck Bunny - 1080p",
+                    link: "https://example.com/video/big-buck-bunny-1080p.mp4",
+                }
+            ],
+            subtitles: [
+                {
+                    name: "Big Buck Bunny - English",
+                    link: "https://example.com/subtitle/big-buck-bunny-1080p.srt",
+                }
+            ]
+        }
+
+        if (result) controller.finish(result);
+        if (!result) controller.failed(); 
+    },
+    onConnection(ws, request) {
+        console.log("A client connected " + request.socket.remoteAddress);
+    },
+    onListening() {
+        console.log("WebSocket is listening...");
+    },
+});
+
+// Express route
+app.get('/', (req, res) => {
+    res.send('Hello from Express server!');
+});
+
+// Start the server
+server.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
+
+```
 
 ## Plugin Metadata Structure
 
