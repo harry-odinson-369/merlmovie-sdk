@@ -179,7 +179,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
     });
 }
 
-const __DefaultWSS = (CONFIG?: InitialConfig) => new WebSocket.Server({ host: CONFIG?.HOST, port: CONFIG?.PORT });
+const __DefaultWSS = (CONFIG?: InitialConfig) => (CONFIG?.Server || new WebSocket.Server({ host: CONFIG?.HOST, port: CONFIG?.PORT }));
 
 export default class MerlMovieSDK {
 

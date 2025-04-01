@@ -1,5 +1,5 @@
 import { IncomingMessage } from "http";
-import { WebSocket } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 
 export type FetchResponse = {
     status: number,
@@ -81,4 +81,5 @@ export type HandleProps = {
 export type InitialConfig = {
     HOST?: string,
     PORT?: number,
+    Server?: WebSocketServer,
 }
