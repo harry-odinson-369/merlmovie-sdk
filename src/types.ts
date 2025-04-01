@@ -73,7 +73,7 @@ export const WSSAction = {
 
 export type HandleProps = {
     onStream: (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void,
-    onConnection?: (ws: WebSocket, message: IncomingMessage) => void,
+    onConnection?: (ws: WebSocket, request: IncomingMessage) => void,
     onListening?: () => void,
     onClosed?: (code: number, reason: Buffer<ArrayBufferLike>) => void,
 };
@@ -81,5 +81,5 @@ export type HandleProps = {
 export type InitialConfig = {
     HOST?: string,
     PORT?: number,
-    Server?: WebSocketServer,
+    WSS?: WebSocketServer,
 }
