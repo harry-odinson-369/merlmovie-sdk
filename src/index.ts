@@ -142,8 +142,31 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
 
             if (data) {
                 if (data.action === WSSAction.stream) {
+
+                    let __data: OnStreamData = data.data.i ? {
+                        media_info: {
+                            media_id: data.data.i,
+                            media_type: data.data.t,
+                            season_id: data.data.s,
+                            episode_id: data.data.e,
+                        },
+                        device_info: {
+                            is_physical: false,
+                            os: "Android",
+                            os_version: "15",
+                            model: "Pixel 6 Pro",
+                        },
+                        app_info: {
+                            app_name: "MerlMovie",
+                            build_number: "0",
+                            install_store: "unknown",
+                            package_name: "com.NOUVANNET.qr",
+                            version: "9.8.8",
+                        }
+                    } : (data.data as OnStreamData);
+
                     props.onStream(
-                        data.data as OnStreamData,
+                        __data,
                         {
                             fetch: ({ url, method, headers, data }) => _request(ws, url, method, headers, data),
                             progress: (percent) => _send_progress(ws, percent),
