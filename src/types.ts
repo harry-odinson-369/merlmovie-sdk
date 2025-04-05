@@ -38,11 +38,29 @@ export type WSSDataModel = {
 }
 export type WSSFetchMethod = "get" | "post";
 export type MediaType = "movie" | "tv";
+export type MediaInfo = {
+    media_id: string,
+    media_type?: MediaType,
+    season_id?: string,
+    episode_id?: string,
+};
+export type DeviceInfo = {
+    os: string,
+    os_version: string,
+    is_physical: boolean,
+    model: string,
+}
+export type AppInfo = {
+    version: string,
+    build_number: string,
+    install_store: string,
+    app_name: string,
+    package_name: string,
+}
 export type OnStreamData = {
-    mediaType?: MediaType,
-    mediaId: string,
-    season?: string,
-    episode?: string,
+    media_info: MediaInfo,
+    device_info: DeviceInfo,
+    app_info: AppInfo,
 }
 export type PluginMetadata = {
     logo_background_color?: string,
@@ -71,11 +89,16 @@ export const WSSAction = {
     failed: "failed",
 }
 
+export type OnStreamFunction = (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void;
+export type OnConnectionFunction = (ws: WebSocket, request: IncomingMessage) => void;
+export type OnListeningFunction = () => void;
+export type OnClosedFunction = (code: number, reason: Buffer<ArrayBufferLike>) => void;
+
 export type HandleProps = {
-    onStream: (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void,
-    onConnection?: (ws: WebSocket, request: IncomingMessage) => void,
-    onListening?: () => void,
-    onClosed?: (code: number, reason: Buffer<ArrayBufferLike>) => void,
+    onStream: OnStreamFunction,
+    onConnection?: OnConnectionFunction,
+    onListening?: OnListeningFunction,
+    onClosed?: OnClosedFunction,
 };
 
 export type InitialConfig = {

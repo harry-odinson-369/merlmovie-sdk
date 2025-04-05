@@ -1,11 +1,11 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchResponse, HandleProps, InitialConfig, OnStreamData, PluginMetadata, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+import { DirectLink, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
 
 function __throwError(msg: string) {
     throw Error(`[MerlMovie SDK] ${msg}`);
 }
 
-function __create_plugin(props: PluginMetadata): PluginMetadata {
+export function createPlugin(props: PluginMetadata): PluginMetadata {
     if (!props.embed_url) __throwError("embed_url value is required!");
     if (!props.embed_url.startsWith("http") && !props.embed_url.startsWith("ws")) __throwError("embed_url must be start with http or ws protocol!");
     if (!props.name) __throwError("name value is required!");
@@ -72,17 +72,10 @@ function _send_failed(ws: WebSocket, status?: number, message?: string) {
     ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
 }
 
-export async function sendTest(targetHost: string, data: OnStreamData, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
+export async function sendTest(host: string, data: OnStreamData, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
     return new Promise<DirectLink | undefined>(async resolve => {
-        const props = {
-            t: data.mediaType,
-            i: data.mediaId,
-            s: data.season,
-            e: data.episode,
-        }
-
         const ws = await new Promise<WebSocket>(resolve => {
-            const ws = new WebSocket(targetHost);
+            const ws = new WebSocket(host);
             const timer = setInterval(() => {
                 if (ws.readyState === 1) {
                     clearInterval(timer);
@@ -93,20 +86,20 @@ export async function sendTest(targetHost: string, data: OnStreamData, progress?
 
         ws.on("message", async (raw) => {
 
-            const data = _paseWSSData(raw.toString("utf-8"));
+            const msg = _paseWSSData(raw.toString("utf-8"));
 
-            if (data) {
-                if (data.action === WSSAction.result) {
-                    resolve(data.data as DirectLink);
+            if (msg) {
+                if (msg.action === WSSAction.result) {
+                    resolve(msg.data as DirectLink);
                     ws.close();
-                } else if (data.action === WSSAction.failed) {
+                } else if (msg.action === WSSAction.failed) {
                     resolve(undefined);
                     ws.close();
-                } else if (data.action === WSSAction.progress) {
-                    if (progress) progress(data.data.progress);
-                    if (!progress) console.log(`[MerlMovie SDK] Received test progress ${data.data.progress}% for mediaId ${props.i}${props.s && props.e ? ` season ${props.s} episode ${props.e}` : ""}`);
-                } else if (data.action === WSSAction.fetch) {
-                    const httpInfo = data.data as { url: string, headers: Record<any, any>, method: string, body: any, response_type: string };
+                } else if (msg.action === WSSAction.progress) {
+                    if (progress) progress(msg.data.progress);
+                    if (!progress) console.log(`[MerlMovie SDK] Received test progress ${msg.data.progress}% for mediaId ${data.media_info.media_id}${data.media_info.season_id && data.media_info.episode_id ? ` season ${data.media_info.season_id} episode ${data.media_info.episode_id}` : ""}`);
+                } else if (msg.action === WSSAction.fetch) {
+                    const httpInfo = msg.data as { url: string, headers: Record<any, any>, method: string, body: any, response_type: string };
 
                     let resp: Response;
 
@@ -134,7 +127,7 @@ export async function sendTest(targetHost: string, data: OnStreamData, progress?
 
         });
 
-        ws.send(JSON.stringify({ action: WSSAction.stream, data: props }));
+        ws.send(JSON.stringify({ action: WSSAction.stream, data: data }));
 
     });
 }
@@ -150,12 +143,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
             if (data) {
                 if (data.action === WSSAction.stream) {
                     props.onStream(
-                        {
-                            mediaType: data.data.t,
-                            mediaId: data.data.i,
-                            season: data.data.s,
-                            episode: data.data.e,
-                        },
+                        data.data as OnStreamData,
                         {
                             fetch: ({ url, method, headers, data }) => _request(ws, url, method, headers, data),
                             progress: (percent) => _send_progress(ws, percent),
@@ -179,32 +167,30 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
     });
 }
 
-const __DefaultWSS = (CONFIG?: InitialConfig) => (CONFIG?.WSS || new WebSocket.Server({ host: CONFIG?.HOST, port: CONFIG?.PORT }));
-
 export default class MerlMovieSDK {
 
     constructor(config?: InitialConfig) {
-        this.CONFIG = config;
+        this.config = config;
     }
 
-    CONFIG?: InitialConfig;
+    config?: InitialConfig;
 
-    CreatePlugin = (metadata: PluginMetadata) => __create_plugin(metadata);
+    private defaultWSS = (config?: InitialConfig) => (config?.WSS || new WebSocket.Server({ host: config?.HOST, port: config?.PORT }));
 
-    SendTest = (targetHost: string, data: OnStreamData, progress?: (percent: number) => void) => sendTest(targetHost, data, progress);
+    handle(props: HandleProps): void;
+    handle(callback: OnStreamFunction): void;
+    handle(wss: WebSocketServer, callback: OnStreamFunction): void;
+    handle(wss: WebSocketServer, props: HandleProps): void;
+    handle(arg: WebSocketServer | HandleProps | OnStreamFunction, arg1?: HandleProps | OnStreamFunction) {
 
-    Handle(props: HandleProps): void;
-
-    Handle(wss: WebSocketServer, props: HandleProps): void;
-
-    Handle(arg: WebSocketServer | HandleProps, props?: HandleProps) {
-
-        const __props: HandleProps = props || { onStream(_, __, ___) { }, };
+        const __props: HandleProps = typeof arg1 === "function" ? { onStream: arg1 } : (arg1 || { onStream(_, __, ___) { }, });
 
         if (arg instanceof WebSocketServer) {
             __handle__(arg, __props);
+        } else if (typeof arg === "function") {
+            __handle__(this.defaultWSS(this.config), { onStream: arg });
         } else {
-            __handle__(__DefaultWSS(this.CONFIG), arg);
+            __handle__(this.defaultWSS(this.config), arg);
         }
     }
 

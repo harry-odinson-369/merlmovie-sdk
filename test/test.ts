@@ -1,0 +1,1 @@
+import MerlMovieSDK, { sendTest } from "../src";
