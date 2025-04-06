@@ -106,3 +106,9 @@ export type InitialConfig = {
     PORT?: number,
     WSS?: WebSocketServer,
 }
+
+export type SendTestProps = {
+    media_info: MediaInfo,
+    device_info?: DeviceInfo,
+    app_info?: AppInfo,
+}

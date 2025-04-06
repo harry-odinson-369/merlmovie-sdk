@@ -1,5 +1,20 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+import { DirectLink, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+
+const DefaultDeviceInfo = {
+    is_physical: false,
+    os: "Android",
+    os_version: "15",
+    model: "Pixel 6 Pro",
+};
+
+const DefaultAppInfo = {
+    app_name: "MerlMovie",
+    build_number: "0",
+    install_store: "unknown",
+    package_name: "com.NOUVANNET.qr",
+    version: "9.8.8",
+};
 
 function __throwError(msg: string) {
     throw Error(`[MerlMovie SDK] ${msg}`);
@@ -72,8 +87,15 @@ function _send_failed(ws: WebSocket, status?: number, message?: string) {
     ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
 }
 
-export async function sendTest(host: string, data: OnStreamData, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
+export async function sendTest(host: string, props: SendTestProps, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
     return new Promise<DirectLink | undefined>(async resolve => {
+
+        let data: OnStreamData = {
+            media_info: props.media_info,
+            device_info: DefaultDeviceInfo,
+            app_info: DefaultAppInfo,
+        }
+
         const ws = await new Promise<WebSocket>(resolve => {
             const ws = new WebSocket(host);
             const timer = setInterval(() => {
@@ -150,19 +172,8 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                             season_id: data.data.s,
                             episode_id: data.data.e,
                         },
-                        device_info: {
-                            is_physical: false,
-                            os: "Android",
-                            os_version: "15",
-                            model: "Pixel 6 Pro",
-                        },
-                        app_info: {
-                            app_name: "MerlMovie",
-                            build_number: "0",
-                            install_store: "unknown",
-                            package_name: "com.NOUVANNET.qr",
-                            version: "9.8.8",
-                        }
+                        device_info: DefaultDeviceInfo,
+                        app_info: DefaultAppInfo,
                     } : (data.data as OnStreamData);
 
                     props.onStream(
