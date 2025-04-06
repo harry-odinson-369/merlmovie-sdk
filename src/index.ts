@@ -54,7 +54,6 @@ function __checkJSON(text: string) {
     try {
         return JSON.parse(text);
     } catch (err) {
-        console.error(err);
         return text;
     }
 }
@@ -92,8 +91,8 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
 
         let data: OnStreamData = {
             media_info: props.media_info,
-            device_info: DefaultDeviceInfo,
-            app_info: DefaultAppInfo,
+            device_info: props.device_info || DefaultDeviceInfo,
+            app_info: props.app_info || DefaultAppInfo,
         }
 
         const ws = await new Promise<WebSocket>(resolve => {
@@ -123,14 +122,7 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
                 } else if (msg.action === WSSAction.fetch) {
                     const httpInfo = msg.data as { url: string, headers: Record<any, any>, method: string, body: any, response_type: string };
 
-                    let resp: Response;
-
-                    if (httpInfo.method === "get") {
-                        resp = await fetch(httpInfo.url, { method: "GET", headers: httpInfo.headers });
-                    } else {
-                        resp = await fetch(httpInfo.url, { method: "POST", headers: httpInfo.headers, body: httpInfo.body });
-                    }
-
+                    let resp: Response = await fetch(httpInfo.url, { method: httpInfo.method.toUpperCase(), headers: httpInfo.headers, body: httpInfo.body });
 
                     const isBytesResponse = httpInfo.response_type === "bytes";
 

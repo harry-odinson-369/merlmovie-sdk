@@ -36,7 +36,7 @@ export type WSSDataModel = {
     action: string,
     data: Record<any, any>,
 }
-export type WSSFetchMethod = "get" | "post";
+export type WSSFetchMethod = string;
 export type MediaType = "movie" | "tv";
 export type MediaInfo = {
     media_id: string,
@@ -52,8 +52,8 @@ export type DeviceInfo = {
 }
 export type AppInfo = {
     version: string,
-    build_number: string,
-    install_store: string,
+    build_number?: string,
+    install_store?: string,
     app_name: string,
     package_name: string,
 }
