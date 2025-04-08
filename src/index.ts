@@ -1,5 +1,5 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
 
 const DefaultDeviceInfo = {
     is_physical: false,
@@ -35,7 +35,7 @@ export function createPlugin(props: PluginMetadata): PluginMetadata {
 
     for (let i = 0; i < props.name.length; i++) {
         temp = temp + props.name[i];
-        query.push(temp.toLowerCase());   
+        query.push(temp.toLowerCase());
     }
 
     metadata["query"] = query;
@@ -74,28 +74,28 @@ function __checkJSON(text: string) {
     }
 }
 
-function _request(ws: WebSocket, url: string, method?: WSSFetchMethod, headers?: Record<any, any>, data?: any): Promise<FetchResponse> {
+function _request(ws: WebSocket, props: FetchFunctionParams): Promise<FetchResponse> {
     return new Promise((resolve) => {
+
+        let __props = props;
+
+        __props.method = __props.method || "get";
+
         ws.on("message", (raw) => {
             const data = _paseWSSData(raw.toString("utf-8"));
             if (data) {
                 if (data.action === WSSAction.result) {
-                    resolve({ 
-                        status: data.data.status, 
-                        data: data.data.body, 
+                    resolve({
+                        status: data.data.status,
+                        data: data.data.body,
                         headers: data.data.headers,
                     });
                 }
             }
         });
-        const payload: WSSDataModel = { 
-            action: WSSAction.fetch, 
-            data: { 
-                method: method || "get",
-                url: url, 
-                headers: headers, 
-                body: data,
-            }, 
+        const payload: WSSDataModel = {
+            action: WSSAction.fetch,
+            data: __props,
         }
         ws.send(JSON.stringify(payload));
     });
@@ -116,12 +116,20 @@ function _send_failed(ws: WebSocket, status?: number, message?: string) {
 }
 
 async function __getCache<T>(ws: WebSocket, key: string): Promise<T | undefined> {
-    const response = await _request(ws, `db://get:${key}`, "get");
+    const response = await _request(ws, { 
+        url: `db://get:${key}`,
+        method: "get",
+    });
     if (response.status === 200) return response.data as T;
 }
 
 async function __setCache(ws: WebSocket, key: string, value: any): Promise<boolean> {
-    const response = await _request(ws, `db://set:${key}`, "post", {}, typeof value === "string" ? value : JSON.stringify(value));
+    const response = await _request(ws, {
+        url: `db://set:${key}`,
+        method: "post",
+        headers: {},
+        data: typeof value === "string" ? value : JSON.stringify(value),
+    });
     return response.status === 200;
 }
 
@@ -210,7 +218,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                     props.onStream(
                         __data,
                         {
-                            fetch: ({ url, method, headers, data }) => _request(ws, url, method, headers, data),
+                            fetch: (props) => _request(ws, props),
                             progress: (percent) => _send_progress(ws, percent),
                             finish: (data: DirectLink) => _send_final_result(ws, data),
                             failed: (status, message) => _send_failed(ws, status, message),
