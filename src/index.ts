@@ -225,7 +225,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
 
         if (props.onConnection) props.onConnection(ws, message);
 
-        ws.on("message", (raw) => {
+        const callback = (raw: RawData) => {
             const data = _paseWSSData(raw.toString("utf-8"));
 
             if (data) {
@@ -257,10 +257,13 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                 }
             }
 
-        });
+        };
+
+        ws.on("message", callback);
 
         ws.on("close", (code, reason) => {
             if (props.onClosed) props.onClosed(code, reason);
+            ws.removeListener("message", callback);
         });
     });
 
