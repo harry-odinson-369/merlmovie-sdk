@@ -77,7 +77,7 @@ function __checkJSON(text: string) {
 function _request(ws: WebSocket, props: FetchFunctionParams, app_info: AppInfo): Promise<FetchResponse> {
     return new Promise(async (resolve) => {
         const __version = parseInt(app_info.version.split(".").join(""));
-        const __id = __version <= 988 ? undefined : Math.random().toString(36).substring(2, 16);
+        const __id = Math.random().toString(36).substring(2, 16);
         let __props = props;
 
         __props.method = __props.method || "get";
@@ -88,18 +88,20 @@ function _request(ws: WebSocket, props: FetchFunctionParams, app_info: AppInfo):
             const data = _paseWSSData(raw.toString("utf-8"));
             if (data) {
                 if (data.action === WSSAction.result) {
-                    if (__id && __id === data.__id) {
+                    if (__version <= 988) {
                         __response = {
                             status: data.data.status,
                             data: data.data.body,
                             headers: data.data.headers,
                         };
                     } else {
-                        __response = {
-                            status: data.data.status,
-                            data: data.data.body,
-                            headers: data.data.headers,
-                        };
+                        if (__id === data.__id) {
+                            __response = {
+                                status: data.data.status,
+                                data: data.data.body,
+                                headers: data.data.headers,
+                            };
+                        }
                     }
                 }
             }
