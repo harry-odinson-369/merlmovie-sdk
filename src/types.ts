@@ -35,6 +35,7 @@ export type WSSController = {
     failed: FailedFunction,
     get: GetCacheFunction,
     set: SetCacheFunction,
+    connection_id: string,
 }
 export type WSSDataModel = {
     action: string,
@@ -98,9 +99,9 @@ export const WSSAction = {
 }
 
 export type OnStreamFunction = (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void;
-export type OnConnectionFunction = (ws: WebSocket, request: IncomingMessage) => void;
+export type OnConnectionFunction = (ws: WebSocket, request: IncomingMessage, connection_id: string) => void;
 export type OnListeningFunction = () => void;
-export type OnClosedFunction = (code: number, reason: Buffer<ArrayBufferLike>) => void;
+export type OnClosedFunction = (code: number, reason: Buffer<ArrayBufferLike>, connection_id: string) => void;
 
 export type HandleProps = {
     onStream: OnStreamFunction,

@@ -74,10 +74,12 @@ function __checkJSON(text: string) {
     }
 }
 
+const uniqueId = () => Math.random().toString(36).substring(2, 24);
+
 function _request(ws: WebSocket, props: FetchFunctionParams, app_info: AppInfo): Promise<FetchResponse> {
     return new Promise(async (resolve) => {
         const __version = parseInt(app_info.version.split(".").join(""));
-        const __id = Math.random().toString(36).substring(2, 16);
+        const __id = uniqueId();
         let __props = props;
 
         __props.method = __props.method || "get";
@@ -222,8 +224,10 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
 
 function __handle__(wss: WebSocketServer, props: HandleProps): void {
     wss.on("connection", (ws, message) => {
+        
+        const connection_id = uniqueId();
 
-        if (props.onConnection) props.onConnection(ws, message);
+        if (props.onConnection) props.onConnection(ws, message, connection_id);
 
         const callback = (raw: RawData) => {
             const data = _paseWSSData(raw.toString("utf-8"));
@@ -251,6 +255,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                             failed: (status, message) => _send_failed(ws, status, message),
                             get: (key: string) => __getCache(ws, key, __data.app_info),
                             set: (key, value) => __setCache(ws, key, value, __data.app_info),
+                            connection_id: connection_id,
                         },
                         message,
                     );
@@ -262,7 +267,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
         ws.on("message", callback);
 
         ws.on("close", (code, reason) => {
-            if (props.onClosed) props.onClosed(code, reason);
+            if (props.onClosed) props.onClosed(code, reason, connection_id);
             ws.removeListener("message", callback);
         });
     });
