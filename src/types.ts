@@ -26,8 +26,8 @@ export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchRespon
 export type FinishFunction = (data: DirectLink) => void;
 export type ProgressFunction = (percent: number) => void;
 export type FailedFunction = (status?: number, message?: string) => void;
-export type GetCacheFunction = (key: string) => Promise<string | undefined>;
-export type SetCacheFunction = (key: string, value: string) => Promise<boolean>;
+export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
+export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
 export type WSSController = {
     fetch: FetchFunction,
     progress: ProgressFunction,

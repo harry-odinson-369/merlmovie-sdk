@@ -115,13 +115,13 @@ function _send_failed(ws: WebSocket, status?: number, message?: string) {
     ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
 }
 
-async function __getCache(ws: WebSocket, key: string): Promise<string | undefined> {
+async function __getCache<T>(ws: WebSocket, key: string): Promise<T | undefined> {
     const response = await _request(ws, `db://get:${key}`, "get");
-    if (response.status === 200) return response.data;
+    if (response.status === 200) return response.data as T;
 }
 
-async function __setCache(ws: WebSocket, key: string, value: string): Promise<boolean> {
-    const response = await _request(ws, `db://set:${key}`, "post", {}, value);
+async function __setCache(ws: WebSocket, key: string, value: any): Promise<boolean> {
+    const response = await _request(ws, `db://set:${key}`, "post", {}, typeof value === "string" ? value : JSON.stringify(value));
     return response.status === 200;
 }
 
@@ -214,7 +214,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                             progress: (percent) => _send_progress(ws, percent),
                             finish: (data: DirectLink) => _send_final_result(ws, data),
                             failed: (status, message) => _send_failed(ws, status, message),
-                            get: (key) => __getCache(ws, key),
+                            get: (key: string) => __getCache(ws, key),
                             set: (key, value) => __setCache(ws, key, value),
                         },
                         message,
