@@ -38,6 +38,7 @@ export type WSSController = {
 }
 export type WSSDataModel = {
     action: string,
+    __id?: string,
     data: Record<any, any>,
 }
 export type WSSFetchMethod = string;

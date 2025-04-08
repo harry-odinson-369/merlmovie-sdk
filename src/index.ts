@@ -1,5 +1,5 @@
-import { WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+import { RawData, WebSocket, WebSocketServer } from "ws";
+import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
 
 const DefaultDeviceInfo = {
     is_physical: false,
@@ -74,30 +74,55 @@ function __checkJSON(text: string) {
     }
 }
 
-function _request(ws: WebSocket, props: FetchFunctionParams): Promise<FetchResponse> {
-    return new Promise((resolve) => {
-
+function _request(ws: WebSocket, props: FetchFunctionParams, app_info: AppInfo): Promise<FetchResponse> {
+    return new Promise(async (resolve) => {
+        const __version = parseInt(app_info.version.split(".").join(""));
+        const __id = __version <= 988 ? undefined : Math.random().toString(36).substring(2, 16);
         let __props = props;
 
         __props.method = __props.method || "get";
 
-        ws.on("message", (raw) => {
+        let __response: FetchResponse | undefined;
+
+        const callback = (raw: RawData) => {
             const data = _paseWSSData(raw.toString("utf-8"));
             if (data) {
                 if (data.action === WSSAction.result) {
-                    resolve({
-                        status: data.data.status,
-                        data: data.data.body,
-                        headers: data.data.headers,
-                    });
+                    if (__id && __id === data.__id) {
+                        __response = {
+                            status: data.data.status,
+                            data: data.data.body,
+                            headers: data.data.headers,
+                        };
+                    } else {
+                        __response = {
+                            status: data.data.status,
+                            data: data.data.body,
+                            headers: data.data.headers,
+                        };
+                    }
                 }
             }
-        });
+        }
+
+        ws.on("message", callback);
+
         const payload: WSSDataModel = {
             action: WSSAction.fetch,
+            __id: __id,
             data: __props,
         }
+        
         ws.send(JSON.stringify(payload));
+        
+        while(true) {
+            if (__response) {
+                ws.removeListener("message", callback);
+                resolve(__response);
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
     });
 }
 
@@ -115,21 +140,21 @@ function _send_failed(ws: WebSocket, status?: number, message?: string) {
     ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
 }
 
-async function __getCache<T>(ws: WebSocket, key: string): Promise<T | undefined> {
-    const response = await _request(ws, { 
+async function __getCache<T>(ws: WebSocket, key: string, app_info: AppInfo): Promise<T | undefined> {
+    const response = await _request(ws, {
         url: `db://get:${key}`,
         method: "get",
-    });
+    }, app_info);
     if (response.status === 200) return response.data as T;
 }
 
-async function __setCache(ws: WebSocket, key: string, value: any): Promise<boolean> {
+async function __setCache(ws: WebSocket, key: string, value: any, app_info: AppInfo): Promise<boolean> {
     const response = await _request(ws, {
         url: `db://set:${key}`,
         method: "post",
         headers: {},
         data: typeof value === "string" ? value : JSON.stringify(value),
-    });
+    }, app_info);
     return response.status === 200;
 }
 
@@ -218,12 +243,12 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                     props.onStream(
                         __data,
                         {
-                            fetch: (props) => _request(ws, props),
+                            fetch: (props) => _request(ws, props, __data.app_info),
                             progress: (percent) => _send_progress(ws, percent),
                             finish: (data: DirectLink) => _send_final_result(ws, data),
                             failed: (status, message) => _send_failed(ws, status, message),
-                            get: (key: string) => __getCache(ws, key),
-                            set: (key, value) => __setCache(ws, key, value),
+                            get: (key: string) => __getCache(ws, key, __data.app_info),
+                            set: (key, value) => __setCache(ws, key, value, __data.app_info),
                         },
                         message,
                     );
