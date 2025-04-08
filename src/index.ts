@@ -28,6 +28,22 @@ export function createPlugin(props: PluginMetadata): PluginMetadata {
     Object.entries(props).forEach(e => {
         metadata[e[0]] = !e[1] ? null : e[1];
     });
+
+    let query: string[] = [];
+
+    let temp: string = '';
+
+    for (let i = 0; i < props.name.length; i++) {
+        temp = temp + props.name[i];
+        query.push(temp.toLowerCase());   
+    }
+
+    metadata["query"] = query;
+
+    if (!(props.version || "").length) {
+        metadata["version"] = "1.0.0";
+    }
+
     return JSON.parse(JSON.stringify(metadata));
 }
 
@@ -64,11 +80,24 @@ function _request(ws: WebSocket, url: string, method?: WSSFetchMethod, headers?:
             const data = _paseWSSData(raw.toString("utf-8"));
             if (data) {
                 if (data.action === WSSAction.result) {
-                    resolve({ status: data.data.status, data: data.data.body, headers: data.data.headers });
+                    resolve({ 
+                        status: data.data.status, 
+                        data: data.data.body, 
+                        headers: data.data.headers,
+                    });
                 }
             }
         });
-        ws.send(JSON.stringify({ action: WSSAction.fetch, data: { method: method || "get", url: url, headers: headers, body: data } }));
+        const payload: WSSDataModel = { 
+            action: WSSAction.fetch, 
+            data: { 
+                method: method || "get",
+                url: url, 
+                headers: headers, 
+                body: data,
+            }, 
+        }
+        ws.send(JSON.stringify(payload));
     });
 }
 
@@ -84,6 +113,16 @@ async function _send_final_result(ws: WebSocket, data: DirectLink) {
 function _send_failed(ws: WebSocket, status?: number, message?: string) {
     const msg = message || "An unexpected error occurred while we tried to load the resource you've requested.";
     ws.send(JSON.stringify({ action: WSSAction.failed, data: { status: status || 500, message: msg } }));
+}
+
+async function __getCache(ws: WebSocket, key: string): Promise<string | undefined> {
+    const response = await _request(ws, `db://get:${key}`, "get");
+    if (response.status === 200) return response.data;
+}
+
+async function __setCache(ws: WebSocket, key: string, value: string): Promise<boolean> {
+    const response = await _request(ws, `db://set:${key}`, "post");
+    return response.status === 200;
 }
 
 export async function sendTest(host: string, props: SendTestProps, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
@@ -175,6 +214,8 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                             progress: (percent) => _send_progress(ws, percent),
                             finish: (data: DirectLink) => _send_final_result(ws, data),
                             failed: (status, message) => _send_failed(ws, status, message),
+                            get: (key) => __getCache(ws, key),
+                            set: (key, value) => __setCache(ws, key, value),
                         },
                         message,
                     );
@@ -208,9 +249,7 @@ export default class MerlMovieSDK {
     handle(wss: WebSocketServer, callback: OnStreamFunction): void;
     handle(wss: WebSocketServer, props: HandleProps): void;
     handle(arg: WebSocketServer | HandleProps | OnStreamFunction, arg1?: HandleProps | OnStreamFunction) {
-
         const __props: HandleProps = typeof arg1 === "function" ? { onStream: arg1 } : (arg1 || { onStream(_, __, ___) { }, });
-
         if (arg instanceof WebSocketServer) {
             __handle__(arg, __props);
         } else if (typeof arg === "function") {

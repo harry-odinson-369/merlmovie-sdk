@@ -17,7 +17,7 @@ export type DirectLink = {
 }
 export type FetchFunctionParams = {
     url: string,
-    method?: "get" | "post",
+    method?: string,
     headers?: Record<any, any>,
     data?: any,
     response_type?: "dynamic" | "bytes",
@@ -26,11 +26,15 @@ export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchRespon
 export type FinishFunction = (data: DirectLink) => void;
 export type ProgressFunction = (percent: number) => void;
 export type FailedFunction = (status?: number, message?: string) => void;
+export type GetCacheFunction = (key: string) => Promise<string | undefined>;
+export type SetCacheFunction = (key: string, value: string) => Promise<boolean>;
 export type WSSController = {
     fetch: FetchFunction,
     progress: ProgressFunction,
     finish: FinishFunction,
     failed: FailedFunction,
+    get: GetCacheFunction,
+    set: SetCacheFunction,
 }
 export type WSSDataModel = {
     action: string,
@@ -70,7 +74,8 @@ export type PluginMetadata = {
     tv_embed_url?: string,
     headers?: Record<any, any>,
     name: string,
-    image?: string,
+    author: string,
+    image: string,
     description?: string,
     script?: string,
     official_website: string,
@@ -79,6 +84,8 @@ export type PluginMetadata = {
     _docId?: string,
     webview_type?: "webview_flutter" | "flutter_inappwebview",
     allowed_domains?: string[],
+    version?: string,
+    query?: string[],
 }
 
 export const WSSAction = {
