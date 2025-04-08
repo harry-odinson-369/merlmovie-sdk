@@ -121,7 +121,7 @@ async function __getCache(ws: WebSocket, key: string): Promise<string | undefine
 }
 
 async function __setCache(ws: WebSocket, key: string, value: string): Promise<boolean> {
-    const response = await _request(ws, `db://set:${key}`, "post");
+    const response = await _request(ws, `db://set:${key}`, "post", {}, value);
     return response.status === 200;
 }
 
