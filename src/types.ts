@@ -46,6 +46,7 @@ export type OnNavigationRequest = (url: string) => Promise<boolean>;
 export type OnNavigationFinishedController = {
     evaluate: (script: string) => Promise<any>,
     cookie: (url: string) => Promise<string>,
+    click: (x: number, y: number) => void,
 }
 export type OnNavigationFinished = (url: string, controller: OnNavigationFinishedController) => void;
 export type VirtualFunctionResponse = {
@@ -123,6 +124,7 @@ export const WSSAction = {
     failed: "failed",
     virtual: "virtual",
     virtual_result: "virtual_result",
+    virtual_click: "virtual_click",
     virtual_url_request: "virtual_url_request",
     virtual_url_finished: "virtual_url_finished",
     virtual_close: "virtual_close",

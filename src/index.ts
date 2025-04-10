@@ -286,6 +286,17 @@ async function __cookieVirtual(ws: WebSocket, url: string): Promise<string> {
 
 }
 
+function __clickVirtual(ws: WebSocket, x: number, y: number) {
+    const data: WSSDataModel = {
+        action: WSSAction.virtual_click,
+        data: {
+            x,
+            y,
+        }
+    }
+    ws.send(JSON.stringify(data));
+}
+
 function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionResponse {
 
     const callback = async (raw: RawData) => {
@@ -303,6 +314,7 @@ function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionR
             props.onNavigationFinished(wss.data.url, {
                 cookie: (url) => __cookieVirtual(ws, url),
                 evaluate: (script) => __evaluateVirtual(ws, script),
+                click: (x, y) => __clickVirtual(ws, x, y),
             });
         }
     }
