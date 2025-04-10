@@ -44,7 +44,7 @@ export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
 export type OnNavigationRequest = (url: string) => Promise<boolean>;
 export type OnNavigationFinishedController = {
-    evaluate: (script: string) => Promise<any>,
+    evaluate: (script: string) => Promise<string>,
     cookie: (url: string) => Promise<string>,
     click: (x: number, y: number) => void,
 }
