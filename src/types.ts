@@ -6,14 +6,27 @@ export type FetchResponse = {
     data: any,
     headers: Record<any, any> | null,
 }
-export type LinkModel = {
+export type QualityLink = {
     name: string,
     link: string,
     headers?: Record<any, any>,
 }
+export type SubtitleRootType = "fetch" | "normal";
+export type SubtitleFetchExtension = "gz" | "zip" | "text";
+export type SubtitleLink = {
+    name: string,
+    link: string,
+    headers?: Record<any, any>,
+    type?: SubtitleRootType,
+    key?: {
+        name: string,
+        link: string,
+        extension: SubtitleFetchExtension,
+    }
+}
 export type DirectLink = {
-    qualities: LinkModel[],
-    subtitles: LinkModel[],
+    qualities: QualityLink[],
+    subtitles: SubtitleLink[],
 }
 export type FetchResponseType = "dynamic" | "bytes";
 export type FetchFunctionParams = {
