@@ -222,12 +222,12 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
     });
 }
 
-function __virtual(ws: WebSocket, props: VirtualFunctionProps, onNavigationRequest: OnNavigationRequest, onNavigationFinished: OnNavigationFinished): VirtualFunctionResponse {
+function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionResponse {
 
     const callback = async (raw: RawData) => {
         const wss = _paseWSSData(raw.toString("utf-8"));
         if (wss?.action === WSSAction.virtual_url_request) {
-            const isAllow = await onNavigationRequest(wss.data.url);
+            const isAllow = await props.onNavigationRequest(wss.data.url);
             const __data: WSSDataModel = {
                 action: WSSAction.virtual_result,
                 data: {
@@ -236,7 +236,7 @@ function __virtual(ws: WebSocket, props: VirtualFunctionProps, onNavigationReque
             };
             ws.send(JSON.stringify(__data));
         } else if (wss?.action === WSSAction.virtual_url_finished) {
-            onNavigationFinished(wss.data.url, wss.data.html, wss.data.script_result);
+            props.onNavigationFinished(wss.data.url, wss.data.html, wss.data.script_result);
         }
     }
 
@@ -244,7 +244,7 @@ function __virtual(ws: WebSocket, props: VirtualFunctionProps, onNavigationReque
 
     const data: WSSDataModel = {
         action: WSSAction.virtual,
-        data: props,
+        data: props.info,
     }
 
     ws.send(JSON.stringify(data));
@@ -296,7 +296,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                             failed: (status, message) => _send_failed(ws, status, message),
                             get: (key: string) => __getCache(ws, key, __data.app_info),
                             set: (key, value) => __setCache(ws, key, value, __data.app_info),
-                            virtual: (__props, onNavigationRequest, onNavigationFinished) => __virtual(ws, __props, onNavigationRequest, onNavigationFinished),
+                            virtual: (__props) => __virtual(ws, __props),
                             session_id: session_id,
                         },
                         message,

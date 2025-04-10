@@ -24,11 +24,16 @@ export type FetchFunctionParams = {
     response_type?: FetchResponseType,
 }
 export type VirtualWebType = "web_0" | "web_1";
-export type VirtualFunctionProps = {
+export type VirtualFunctionInfo = {
     url: string,
     type: VirtualWebType,
     headers?: Record<any, any>,
     script?: string,
+};
+export type VirtualFunctionProps = {
+    info: VirtualFunctionInfo,
+    onNavigationRequest: OnNavigationRequest,
+    onNavigationFinished: OnNavigationFinished,
 };
 export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchResponse>;
 export type FinishFunction = (data: DirectLink) => void;
@@ -41,7 +46,7 @@ export type OnNavigationFinished = (url: string, html?: string, script_result?: 
 export type VirtualFunctionResponse = {
     close: () => void,
 }
-export type VirualFunction = (props: VirtualFunctionProps, onNavigationRequest: OnNavigationRequest, onNavigationFinished: OnNavigationFinished) => void;
+export type VirualFunction = (props: VirtualFunctionProps) => VirtualFunctionResponse;
 export type WSSController = {
     fetch: FetchFunction,
     progress: ProgressFunction,
