@@ -24,11 +24,12 @@ export type FetchFunctionParams = {
     response_type?: FetchResponseType,
 }
 export type VirtualWebType = "web_0" | "web_1";
+export type VirtualWebVisible = "no" | "yes";
 export type VirtualFunctionInfo = {
     url: string,
     type: VirtualWebType,
     headers?: Record<any, any>,
-    script?: string,
+    visible?: VirtualWebVisible,
 };
 export type VirtualFunctionProps = {
     info: VirtualFunctionInfo,
@@ -42,7 +43,11 @@ export type FailedFunction = (status?: number, message?: string) => void;
 export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
 export type OnNavigationRequest = (url: string) => Promise<boolean>;
-export type OnNavigationFinished = (url: string, html?: string, script_result?: string) => void;
+export type OnNavigationFinishedController = {
+    evaluate: (script: string) => Promise<any>,
+    cookie: (url: string) => Promise<string>,
+}
+export type OnNavigationFinished = (url: string, controller: OnNavigationFinishedController) => void;
 export type VirtualFunctionResponse = {
     close: () => void,
 }
@@ -121,6 +126,10 @@ export const WSSAction = {
     virtual_url_request: "virtual_url_request",
     virtual_url_finished: "virtual_url_finished",
     virtual_close: "virtual_close",
+    virtual_evaluate: "virtual_evaluate",
+    virtual_evaluate_result: "virtual_evaluate_result",
+    virtual_cookie: "virtual_cookie",
+    virtual_cookie_result: "virtual_cookie_result",
 }
 
 export type OnStreamFunction = (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void;

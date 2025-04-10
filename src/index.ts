@@ -116,10 +116,10 @@ function _request(ws: WebSocket, props: FetchFunctionParams, app_info: AppInfo):
             __id: __id,
             data: __props,
         }
-        
+
         ws.send(JSON.stringify(payload));
-        
-        while(true) {
+
+        while (true) {
             if (__response) {
                 ws.removeListener("message", callback);
                 resolve(__response);
@@ -222,6 +222,70 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
     });
 }
 
+async function __evaluateVirtual(ws: WebSocket, script: string): Promise<string> {
+
+    let result: string | undefined;
+
+    const callback = (raw: RawData) => {
+        const wss = _paseWSSData(raw.toString("utf-8"));
+        if (wss?.action === WSSAction.virtual_evaluate_result) {
+            result = wss.data.result;
+        }
+    }
+
+    ws.on("message", callback);
+
+    const data: WSSDataModel = {
+        action: WSSAction.virtual_evaluate,
+        data: {
+            script: script,
+        }
+    }
+
+    ws.send(JSON.stringify(data));
+
+    while (true) {
+        if (typeof result !== "undefined") break;
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    ws.removeListener("message", callback);
+
+    return result;
+}
+
+async function __cookieVirtual(ws: WebSocket, url: string): Promise<string> {
+    let cookie: string | undefined;
+
+    const callback = (raw: RawData) => {
+        const wss = _paseWSSData(raw.toString("utf-8"));
+        if (wss?.action === WSSAction.virtual_cookie_result) {
+            cookie = wss.data.cookie;
+        }
+    }
+
+    ws.on("message", callback);
+
+    const data: WSSDataModel = {
+        action: WSSAction.virtual_cookie,
+        data: {
+            url: url,
+        }
+    }
+
+    ws.send(JSON.stringify(data));
+
+    while (true) {
+        if (typeof cookie !== "undefined") break;
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    ws.removeListener("message", callback);
+
+    return cookie;
+
+}
+
 function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionResponse {
 
     const callback = async (raw: RawData) => {
@@ -236,15 +300,22 @@ function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionR
             };
             ws.send(JSON.stringify(__data));
         } else if (wss?.action === WSSAction.virtual_url_finished) {
-            props.onNavigationFinished(wss.data.url, wss.data.html, wss.data.script_result);
+            props.onNavigationFinished(wss.data.url, {
+                cookie: (url) => __cookieVirtual(ws, url),
+                evaluate: (script) => __evaluateVirtual(ws, script),
+            });
         }
     }
 
     ws.on("message", callback);
 
+    let __info = props.info;
+
+    __info.visible = __info.visible || "no";
+
     const data: WSSDataModel = {
         action: WSSAction.virtual,
-        data: props.info,
+        data: __info,
     }
 
     ws.send(JSON.stringify(data));
@@ -265,7 +336,7 @@ function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionR
 
 function __handle__(wss: WebSocketServer, props: HandleProps): void {
     wss.on("connection", (ws, message) => {
-        
+
         const session_id = uniqueId();
 
         if (props.onConnection) props.onConnection(ws, message, session_id);
