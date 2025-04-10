@@ -1,11 +1,11 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, OnNavigationFinished, OnNavigationRequest, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, VirtualFunctionProps, VirtualFunctionResponse, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, VirtualFunctionProps, VirtualFunctionResponse, WSSAction, WSSClientInfo, WSSDataModel } from "./types";
 
 const DefaultDeviceInfo = {
     is_physical: false,
     os: "Android",
     os_version: "15",
-    model: "Pixel 6 Pro",
+    model: "Pixel 6 Pro (Test)",
 };
 
 const DefaultAppInfo = {
@@ -162,17 +162,26 @@ async function __setCache(ws: WebSocket, key: string, value: any, app_info: AppI
     return response.status === 200;
 }
 
-export async function sendTest(host: string, props: SendTestProps, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
+export async function sendTest(host: string, media: MediaInfo, progress?: (percent: number) => void): Promise<DirectLink | undefined> {
     return new Promise<DirectLink | undefined>(async resolve => {
-
-        let data: OnStreamData = {
-            media_info: props.media_info,
-            device_info: props.device_info || DefaultDeviceInfo,
-            app_info: props.app_info || DefaultAppInfo,
-        }
-
         const ws = await new Promise<WebSocket>(resolve => {
-            const ws = new WebSocket(host);
+            let target = host;
+
+            let app_info = DefaultAppInfo;
+            app_info.version = "9.8.9";
+
+            const encoded = Buffer.from(JSON.stringify({
+                app_info,
+                device_info: DefaultDeviceInfo,
+            }), "utf-8").toString("base64");
+
+            if (target.includes("?")) {
+                target = `${target}&__xci__=${encoded}`;
+            } else {
+                target = `${target}?__xci__=${encoded}`;
+            }
+
+            const ws = new WebSocket(target);
             const timer = setInterval(() => {
                 if (ws.readyState === 1) {
                     clearInterval(timer);
@@ -194,7 +203,7 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
                     ws.close();
                 } else if (msg.action === WSSAction.progress) {
                     if (progress) progress(msg.data.progress);
-                    if (!progress) console.log(`[MerlMovie SDK] Received test progress ${msg.data.progress}% for mediaId ${data.media_info.media_id}${data.media_info.season_id && data.media_info.episode_id ? ` season ${data.media_info.season_id} episode ${data.media_info.episode_id}` : ""}`);
+                    if (!progress) console.log(`[MerlMovie SDK] Received test progress ${msg.data.progress}% for mediaId ${media.media_id}${media.season_id && media.episode_id ? ` season ${media.season_id} episode ${media.episode_id}` : ""}`);
                 } else if (msg.action === WSSAction.fetch) {
                     const httpInfo = msg.data as { url: string, headers: Record<any, any>, method: string, body: any, response_type: string };
 
@@ -217,7 +226,7 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
 
         });
 
-        ws.send(JSON.stringify({ action: WSSAction.stream, data: data }));
+        ws.send(JSON.stringify({ action: WSSAction.stream, data: media }));
 
     });
 }
@@ -297,7 +306,7 @@ function __clickVirtual(ws: WebSocket, x: number, y: number) {
     ws.send(JSON.stringify(data));
 }
 
-function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionResponse {
+function __browser(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionResponse {
 
     const callback = async (raw: RawData) => {
         const wss = _paseWSSData(raw.toString("utf-8"));
@@ -347,42 +356,63 @@ function __virtual(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionR
 }
 
 function __handle__(wss: WebSocketServer, props: HandleProps): void {
-    wss.on("connection", (ws, message) => {
+    wss.on("connection", (ws, request) => {
 
         const session_id = uniqueId();
 
-        if (props.onConnection) props.onConnection(ws, message, session_id);
+        const __url = new URL(request.url || "", "https://merlmovie.org");
+
+        let client_info: WSSClientInfo;
+
+        const __key = "__xci__";
+
+        const __xci__ = __url.searchParams.get(__key);
+
+        if (__xci__) {
+            let text = Buffer.from(__xci__, 'base64').toString("utf-8");
+            client_info = JSON.parse(text);
+        } else {
+            client_info = {
+                app_info: DefaultAppInfo,
+                device_info: DefaultDeviceInfo,
+            };
+        }
+
+        if (props.onConnection) props.onConnection(ws, request, session_id, client_info);
 
         const callback = (raw: RawData) => {
-            const data = _paseWSSData(raw.toString("utf-8"));
+            const wss_data = _paseWSSData(raw.toString("utf-8"));
 
-            if (data) {
-                if (data.action === WSSAction.stream) {
+            if (wss_data) {
+                if (wss_data.action === WSSAction.stream) {
 
-                    let __data: OnStreamData = data.data.i ? {
-                        media_info: {
-                            media_id: data.data.i,
-                            media_type: data.data.t,
-                            season_id: data.data.s,
-                            episode_id: data.data.e,
-                        },
-                        device_info: DefaultDeviceInfo,
-                        app_info: DefaultAppInfo,
-                    } : (data.data as OnStreamData);
+                    let __media: MediaInfo;
+
+                    if (parseInt(client_info.app_info.version.split(".").join("")) <= 988) {
+                        __media = {
+                            media_id: wss_data.data.i,
+                            media_type: wss_data.data.t,
+                            season_id: wss_data.data.s,
+                            episode_id: wss_data.data.e,
+                        };
+                    } else {
+                        __media = wss_data.data as MediaInfo;
+                    }
 
                     props.onStream(
-                        __data,
+                        __media,
                         {
-                            fetch: (props) => _request(ws, props, __data.app_info),
+                            fetch: (props) => _request(ws, props, client_info.app_info),
                             progress: (percent) => _send_progress(ws, percent),
                             finish: (data: DirectLink) => _send_final_result(ws, data),
                             failed: (status, message) => _send_failed(ws, status, message),
-                            get: (key: string) => __getCache(ws, key, __data.app_info),
-                            set: (key, value) => __setCache(ws, key, value, __data.app_info),
-                            virtual: (__props) => __virtual(ws, __props),
+                            get: (key: string) => __getCache(ws, key, client_info.app_info),
+                            set: (key, value) => __setCache(ws, key, value, client_info.app_info),
+                            browser: (__props) => __browser(ws, __props),
                             session_id: session_id,
                         },
-                        message,
+                        request,
+                        client_info,
                     );
                 }
             }
@@ -392,7 +422,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
         ws.on("message", callback);
 
         ws.on("close", (code, reason) => {
-            if (props.onClosed) props.onClosed(code, reason, session_id);
+            if (props.onClosed) props.onClosed(code, reason, session_id, client_info);
             ws.removeListener("message", callback);
         });
     });

@@ -52,7 +52,7 @@ export type OnNavigationFinished = (url: string, controller: OnNavigationFinishe
 export type VirtualFunctionResponse = {
     close: () => void,
 }
-export type VirualFunction = (props: VirtualFunctionProps) => VirtualFunctionResponse;
+export type VirtualBrowserFunction = (props: VirtualFunctionProps) => VirtualFunctionResponse;
 export type WSSController = {
     fetch: FetchFunction,
     progress: ProgressFunction,
@@ -60,7 +60,7 @@ export type WSSController = {
     failed: FailedFunction,
     get: GetCacheFunction,
     set: SetCacheFunction,
-    virtual: VirualFunction,
+    browser: VirtualBrowserFunction,
     session_id: string,
 }
 export type WSSDataModel = {
@@ -75,6 +75,7 @@ export type MediaInfo = {
     media_type?: MediaType,
     season_id?: string,
     episode_id?: string,
+    data?: Record<any, any>,
 };
 export type DeviceInfo = {
     os: string,
@@ -88,11 +89,6 @@ export type AppInfo = {
     install_store?: string,
     app_name: string,
     package_name: string,
-}
-export type OnStreamData = {
-    media_info: MediaInfo,
-    device_info: DeviceInfo,
-    app_info: AppInfo,
 }
 export type PluginMetadata = {
     logo_background_color?: string,
@@ -115,7 +111,6 @@ export type PluginMetadata = {
     version?: string,
     query?: string[],
 }
-
 export const WSSAction = {
     stream: "stream",
     fetch: "fetch",
@@ -133,27 +128,22 @@ export const WSSAction = {
     virtual_cookie: "virtual_cookie",
     virtual_cookie_result: "virtual_cookie_result",
 }
-
-export type OnStreamFunction = (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void;
-export type OnConnectionFunction = (ws: WebSocket, request: IncomingMessage, connection_id: string) => void;
+export type OnStreamFunction = (media: MediaInfo, controller: WSSController, request: IncomingMessage, client: WSSClientInfo) => void;
+export type OnConnectionFunction = (ws: WebSocket, request: IncomingMessage, session_id: string, client: WSSClientInfo) => void;
 export type OnListeningFunction = () => void;
-export type OnClosedFunction = (code: number, reason: Buffer<ArrayBufferLike>, connection_id: string) => void;
-
+export type OnClosedFunction = (code: number, reason: Buffer<ArrayBufferLike>, session_id: string, client: WSSClientInfo) => void;
 export type HandleProps = {
     onStream: OnStreamFunction,
     onConnection?: OnConnectionFunction,
     onListening?: OnListeningFunction,
     onClosed?: OnClosedFunction,
 };
-
 export type InitialConfig = {
     HOST?: string,
     PORT?: number,
     WSS?: WebSocketServer,
 }
-
-export type SendTestProps = {
-    media_info: MediaInfo,
-    device_info?: DeviceInfo,
-    app_info?: AppInfo,
+export type WSSClientInfo = {
+    device_info: DeviceInfo,
+    app_info: AppInfo,
 }
