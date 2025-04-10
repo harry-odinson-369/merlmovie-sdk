@@ -1,5 +1,5 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
+import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, OnNavigationFinished, OnNavigationRequest, OnStreamData, OnStreamFunction, PluginMetadata, SendTestProps, VirtualFunctionProps, VirtualFunctionResponse, WSSAction, WSSDataModel, WSSFetchMethod } from "./types";
 
 const DefaultDeviceInfo = {
     is_physical: false,
@@ -222,12 +222,53 @@ export async function sendTest(host: string, props: SendTestProps, progress?: (p
     });
 }
 
+function __virtual(ws: WebSocket, props: VirtualFunctionProps, onNavigationRequest: OnNavigationRequest, onNavigationFinished: OnNavigationFinished): VirtualFunctionResponse {
+
+    const callback = async (raw: RawData) => {
+        const wss = _paseWSSData(raw.toString("utf-8"));
+        if (wss?.action === WSSAction.virtual_url_request) {
+            const isAllow = await onNavigationRequest(wss.data.url);
+            const __data: WSSDataModel = {
+                action: WSSAction.virtual_result,
+                data: {
+                    allow: isAllow,
+                }
+            };
+            ws.send(JSON.stringify(__data));
+        } else if (wss?.action === WSSAction.virtual_url_finished) {
+            onNavigationFinished(wss.data.url, wss.data.html, wss.data.script_result);
+        }
+    }
+
+    ws.on("message", callback);
+
+    const data: WSSDataModel = {
+        action: WSSAction.virtual,
+        data: props,
+    }
+
+    ws.send(JSON.stringify(data));
+
+    const __close = () => {
+        const __data: WSSDataModel = {
+            action: WSSAction.virtual_close,
+            data: {},
+        };
+        ws.send(JSON.stringify(__data));
+        ws.removeListener("message", callback);
+    }
+
+    return {
+        close: __close,
+    }
+}
+
 function __handle__(wss: WebSocketServer, props: HandleProps): void {
     wss.on("connection", (ws, message) => {
         
-        const connection_id = uniqueId();
+        const session_id = uniqueId();
 
-        if (props.onConnection) props.onConnection(ws, message, connection_id);
+        if (props.onConnection) props.onConnection(ws, message, session_id);
 
         const callback = (raw: RawData) => {
             const data = _paseWSSData(raw.toString("utf-8"));
@@ -255,7 +296,8 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                             failed: (status, message) => _send_failed(ws, status, message),
                             get: (key: string) => __getCache(ws, key, __data.app_info),
                             set: (key, value) => __setCache(ws, key, value, __data.app_info),
-                            connection_id: connection_id,
+                            virtual: (__props, onNavigationRequest, onNavigationFinished) => __virtual(ws, __props, onNavigationRequest, onNavigationFinished),
+                            session_id: session_id,
                         },
                         message,
                     );
@@ -267,7 +309,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
         ws.on("message", callback);
 
         ws.on("close", (code, reason) => {
-            if (props.onClosed) props.onClosed(code, reason, connection_id);
+            if (props.onClosed) props.onClosed(code, reason, session_id);
             ws.removeListener("message", callback);
         });
     });

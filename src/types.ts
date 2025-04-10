@@ -15,19 +15,33 @@ export type DirectLink = {
     qualities: LinkModel[],
     subtitles: LinkModel[],
 }
+export type FetchResponseType = "dynamic" | "bytes";
 export type FetchFunctionParams = {
     url: string,
     method?: string,
     headers?: Record<any, any>,
     data?: any,
-    response_type?: "dynamic" | "bytes",
+    response_type?: FetchResponseType,
 }
+export type VirtualWebType = "web_0" | "web_1";
+export type VirtualFunctionProps = {
+    url: string,
+    type: VirtualWebType,
+    headers?: Record<any, any>,
+    script?: string,
+};
 export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchResponse>;
 export type FinishFunction = (data: DirectLink) => void;
 export type ProgressFunction = (percent: number) => void;
 export type FailedFunction = (status?: number, message?: string) => void;
 export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
+export type OnNavigationRequest = (url: string) => Promise<boolean>;
+export type OnNavigationFinished = (url: string, html?: string, script_result?: string) => void;
+export type VirtualFunctionResponse = {
+    close: () => void,
+}
+export type VirualFunction = (props: VirtualFunctionProps, onNavigationRequest: OnNavigationRequest, onNavigationFinished: OnNavigationFinished) => void;
 export type WSSController = {
     fetch: FetchFunction,
     progress: ProgressFunction,
@@ -35,7 +49,8 @@ export type WSSController = {
     failed: FailedFunction,
     get: GetCacheFunction,
     set: SetCacheFunction,
-    connection_id: string,
+    virtual: VirualFunction,
+    session_id: string,
 }
 export type WSSDataModel = {
     action: string,
@@ -96,6 +111,11 @@ export const WSSAction = {
     result: "result",
     progress: "progress",
     failed: "failed",
+    virtual: "virtual",
+    virtual_result: "virtual_result",
+    virtual_url_request: "virtual_url_request",
+    virtual_url_finished: "virtual_url_finished",
+    virtual_close: "virtual_close",
 }
 
 export type OnStreamFunction = (data: OnStreamData, controller: WSSController, request: IncomingMessage) => void;
