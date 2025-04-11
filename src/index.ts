@@ -402,7 +402,7 @@ function __handle__(wss: WebSocketServer, props: HandleProps): void {
                     props.onStream(
                         __media,
                         {
-                            fetch: (props) => _request(ws, props, client_info.app_info),
+                            request: (props) => _request(ws, props, client_info.app_info),
                             progress: (percent) => _send_progress(ws, percent),
                             finish: (data: DirectLink) => _send_final_result(ws, data),
                             failed: (status, message) => _send_failed(ws, status, message),

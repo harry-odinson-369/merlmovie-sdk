@@ -35,6 +35,7 @@ export type FetchFunctionParams = {
     headers?: Record<any, any>,
     data?: any,
     response_type?: FetchResponseType,
+    timeout?: number,
 }
 export type VirtualWebType = "web_0" | "web_1";
 export type VirtualWebVisible = "no" | "yes";
@@ -67,7 +68,7 @@ export type VirtualFunctionResponse = {
 }
 export type VirtualBrowserFunction = (props: VirtualFunctionProps) => VirtualFunctionResponse;
 export type WSSController = {
-    fetch: FetchFunction,
+    request: FetchFunction,
     progress: ProgressFunction,
     finish: FinishFunction,
     failed: FailedFunction,
