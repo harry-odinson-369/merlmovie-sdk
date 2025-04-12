@@ -37,16 +37,16 @@ export type FetchFunctionParams = {
     response_type?: FetchResponseType,
     timeout?: number,
 }
-export type VirtualWebType = "web_0" | "web_1";
-export type VirtualWebVisible = "no" | "yes";
-export type VirtualFunctionInfo = {
+export type BrowserWebType = "web_0" | "web_1";
+export type BrowserWebVisible = "no" | "yes";
+export type BrowserInfo = {
     url: string,
-    type: VirtualWebType,
+    type: BrowserWebType,
     headers?: Record<any, any>,
-    visible?: VirtualWebVisible,
+    visible?: BrowserWebVisible,
 };
-export type VirtualFunctionProps = {
-    info: VirtualFunctionInfo,
+export type BrowserProps = {
+    info: BrowserInfo,
     onNavigationRequest: OnNavigationRequest,
     onNavigationFinished: OnNavigationFinished,
 };
@@ -57,16 +57,16 @@ export type FailedFunction = (status?: number, message?: string) => void;
 export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
 export type OnNavigationRequest = (url: string) => Promise<boolean>;
-export type OnNavigationFinishedController = {
+export type BrowserController = {
     evaluate: (script: string) => Promise<string>,
     cookie: (url: string) => Promise<string>,
     click: (x: number, y: number) => void,
 }
-export type OnNavigationFinished = (url: string, controller: OnNavigationFinishedController) => void;
-export type VirtualFunctionResponse = {
+export type OnNavigationFinished = (url: string, controller: BrowserController) => void;
+export type BrowserInstance = {
     close: () => void,
 }
-export type VirtualBrowserFunction = (props: VirtualFunctionProps) => VirtualFunctionResponse;
+export type BrowserFunction = (props: BrowserProps) => BrowserInstance;
 export type WSSController = {
     request: FetchFunction,
     progress: ProgressFunction,
@@ -74,7 +74,7 @@ export type WSSController = {
     failed: FailedFunction,
     get: GetCacheFunction,
     set: SetCacheFunction,
-    browser: VirtualBrowserFunction,
+    browser: BrowserFunction,
     session_id: string,
 }
 export type WSSDataModel = {
@@ -131,16 +131,16 @@ export const WSSAction = {
     result: "result",
     progress: "progress",
     failed: "failed",
-    virtual: "virtual",
-    virtual_result: "virtual_result",
-    virtual_click: "virtual_click",
-    virtual_url_request: "virtual_url_request",
-    virtual_url_finished: "virtual_url_finished",
-    virtual_close: "virtual_close",
-    virtual_evaluate: "virtual_evaluate",
-    virtual_evaluate_result: "virtual_evaluate_result",
-    virtual_cookie: "virtual_cookie",
-    virtual_cookie_result: "virtual_cookie_result",
+    browser: "browser",
+    browser_result: "browser_result",
+    browser_click: "browser_click",
+    browser_url_request: "browser_url_request",
+    browser_url_finished: "browser_url_finished",
+    browser_close: "browser_close",
+    browser_evaluate: "browser_evaluate",
+    browser_evaluate_result: "browser_evaluate_result",
+    browser_cookie: "browser_cookie",
+    browser_cookie_result: "browser_cookie_result",
 }
 export type OnStreamFunction = (media: MediaInfo, controller: WSSController, request: IncomingMessage, client: WSSClientInfo) => void;
 export type OnConnectionFunction = (ws: WebSocket, request: IncomingMessage, session_id: string, client: WSSClientInfo) => void;

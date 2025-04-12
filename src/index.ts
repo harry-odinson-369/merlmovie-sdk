@@ -1,5 +1,5 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, VirtualFunctionProps, VirtualFunctionResponse, WSSAction, WSSClientInfo, WSSDataModel } from "./types";
+import { AppInfo, DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSClientInfo, WSSDataModel } from "./types";
 
 const DefaultDeviceInfo = {
     is_physical: false,
@@ -237,7 +237,7 @@ async function __evaluateVirtual(ws: WebSocket, script: string): Promise<string>
 
     const callback = (raw: RawData) => {
         const wss = _paseWSSData(raw.toString("utf-8"));
-        if (wss?.action === WSSAction.virtual_evaluate_result) {
+        if (wss?.action === WSSAction.browser_evaluate_result) {
             result = wss.data.result;
         }
     }
@@ -245,7 +245,7 @@ async function __evaluateVirtual(ws: WebSocket, script: string): Promise<string>
     ws.on("message", callback);
 
     const data: WSSDataModel = {
-        action: WSSAction.virtual_evaluate,
+        action: WSSAction.browser_evaluate,
         data: {
             script: script,
         }
@@ -268,7 +268,7 @@ async function __cookieVirtual(ws: WebSocket, url: string): Promise<string> {
 
     const callback = (raw: RawData) => {
         const wss = _paseWSSData(raw.toString("utf-8"));
-        if (wss?.action === WSSAction.virtual_cookie_result) {
+        if (wss?.action === WSSAction.browser_cookie_result) {
             cookie = wss.data.cookie;
         }
     }
@@ -276,7 +276,7 @@ async function __cookieVirtual(ws: WebSocket, url: string): Promise<string> {
     ws.on("message", callback);
 
     const data: WSSDataModel = {
-        action: WSSAction.virtual_cookie,
+        action: WSSAction.browser_cookie,
         data: {
             url: url,
         }
@@ -297,7 +297,7 @@ async function __cookieVirtual(ws: WebSocket, url: string): Promise<string> {
 
 function __clickVirtual(ws: WebSocket, x: number, y: number) {
     const data: WSSDataModel = {
-        action: WSSAction.virtual_click,
+        action: WSSAction.browser_click,
         data: {
             x,
             y,
@@ -306,20 +306,20 @@ function __clickVirtual(ws: WebSocket, x: number, y: number) {
     ws.send(JSON.stringify(data));
 }
 
-function __browser(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionResponse {
+function __browser(ws: WebSocket, props: BrowserProps): BrowserInstance {
 
     const callback = async (raw: RawData) => {
         const wss = _paseWSSData(raw.toString("utf-8"));
-        if (wss?.action === WSSAction.virtual_url_request) {
+        if (wss?.action === WSSAction.browser_url_request) {
             const isAllow = await props.onNavigationRequest(wss.data.url);
             const __data: WSSDataModel = {
-                action: WSSAction.virtual_result,
+                action: WSSAction.browser_result,
                 data: {
                     allow: isAllow,
                 }
             };
             ws.send(JSON.stringify(__data));
-        } else if (wss?.action === WSSAction.virtual_url_finished) {
+        } else if (wss?.action === WSSAction.browser_url_finished) {
             props.onNavigationFinished(wss.data.url, {
                 cookie: (url) => __cookieVirtual(ws, url),
                 evaluate: (script) => __evaluateVirtual(ws, script),
@@ -335,7 +335,7 @@ function __browser(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionR
     __info.visible = __info.visible || "no";
 
     const data: WSSDataModel = {
-        action: WSSAction.virtual,
+        action: WSSAction.browser,
         data: __info,
     }
 
@@ -343,7 +343,7 @@ function __browser(ws: WebSocket, props: VirtualFunctionProps): VirtualFunctionR
 
     const __close = () => {
         const __data: WSSDataModel = {
-            action: WSSAction.virtual_close,
+            action: WSSAction.browser_close,
             data: {},
         };
         ws.send(JSON.stringify(__data));
