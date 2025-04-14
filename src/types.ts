@@ -56,7 +56,7 @@ export type ProgressFunction = (percent: number) => void;
 export type FailedFunction = (status?: number, message?: string) => void;
 export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
-export type OnNavigationRequest = (url: string) => Promise<boolean>;
+export type OnNavigationRequest = (url: string, isMainFrame: boolean) => Promise<boolean>;
 export type BrowserController = {
     evaluate: (script: string) => Promise<string>,
     cookie: (url: string) => Promise<string>,

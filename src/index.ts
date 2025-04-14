@@ -311,7 +311,7 @@ function __browser(ws: WebSocket, props: BrowserProps): BrowserInstance {
     const callback = async (raw: RawData) => {
         const wss = _paseWSSData(raw.toString("utf-8"));
         if (wss?.action === WSSAction.browser_url_request) {
-            const isAllow = await props.onNavigationRequest(wss.data.url);
+            const isAllow = await props.onNavigationRequest(wss.data.url, wss.data.is_main_frame);
             const __data: WSSDataModel = {
                 action: WSSAction.browser_result,
                 data: {
