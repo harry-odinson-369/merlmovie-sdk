@@ -156,8 +156,7 @@ async function __setCache(ws: WebSocket, key: string, value: any, app_info: AppI
     const response = await _request(ws, {
         url: `db://set:${key}`,
         method: "post",
-        headers: {},
-        data: typeof value === "string" ? value : JSON.stringify(value),
+        body: typeof value === "string" ? value : JSON.stringify(value),
     }, app_info);
     return response.status === 200;
 }

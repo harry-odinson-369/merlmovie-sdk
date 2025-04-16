@@ -33,7 +33,7 @@ export type FetchFunctionParams = {
     url: string,
     method?: string,
     headers?: Record<any, any>,
-    data?: any,
+    body?: any,
     response_type?: FetchResponseType,
     timeout?: number,
 }
