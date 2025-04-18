@@ -4,14 +4,14 @@
         "noImplicitAny": true,
         "esModuleInterop": true,
         "strictNullChecks": true,
-        "target": "ES2022",
+        "target": "ESNext",
         "module": "CommonJS",
         "declaration": true,
         "isolatedModules": true,
         "outDir": "dist"
     },
     "include": [
-        "src"
+        "index.ts"
     ],
     "exclude": [
         "node_modules"

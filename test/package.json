@@ -1,0 +1,18 @@
+{
+  "name": "test-merlmovie-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "harryodinson",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "cd ../ && npm run build && cd test && npm install ../ && tsc --build --verbose && node ./dist/index.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "merlmovie-sdk": "file:.."
+  }
+}

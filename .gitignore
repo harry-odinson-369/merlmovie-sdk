@@ -1,5 +1,7 @@
 /dist
 /node_modules
+/test/node_modules
+/test/dist
 
 .env
 .DS_Store

@@ -83,6 +83,7 @@ function _request(ws: WebSocket, props: FetchFunctionParams, app_info: AppInfo):
         let __props = props;
 
         __props.method = __props.method || "get";
+        __props.api = __props.api || "http";
 
         let __response: FetchResponse | undefined;
 

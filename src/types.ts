@@ -29,6 +29,7 @@ export type DirectLink = {
     subtitles: SubtitleLink[],
 }
 export type FetchResponseType = "dynamic" | "bytes";
+export type FetchApiType = "http" | "fetch" | "axios";
 export type FetchFunctionParams = {
     url: string,
     method?: string,
@@ -36,6 +37,11 @@ export type FetchFunctionParams = {
     body?: any,
     response_type?: FetchResponseType,
     timeout?: number,
+    api?: FetchApiType,
+    axios?: {
+        cdn?: string,
+        script?: string,
+    }
 }
 export type BrowserWebType = "web_0" | "web_1";
 export type BrowserWebVisible = "no" | "yes";
