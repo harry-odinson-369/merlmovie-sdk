@@ -29,7 +29,7 @@ export type DirectLink = {
     subtitles: SubtitleLink[],
 }
 export type FetchResponseType = "dynamic" | "bytes";
-export type FetchApiType = "http" | "fetch" | "axios";
+export type FetchApiType = "http" | "axios";
 export type FetchFunctionParams = {
     url: string,
     method?: string,
