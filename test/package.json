@@ -7,12 +7,19 @@
   "type": "commonjs",
   "main": "./dist/index.js",
   "scripts": {
-    "test": "cd ../ && npm run build && cd test && npm install ../ && tsc --build --verbose && node ./dist/index.js"
+    "test": "cd ../ && npm run build && cd test && npm install ../ && tsc --build --verbose && node ./dist/index.js",
+    "dev": "cd ../ && npm run build && cd test && npm install ../ && tsc --build --verbose && nodemon ./src/index.ts"
   },
   "devDependencies": {
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "merlmovie-sdk": "file:.."
+    "@types/express": "^5.0.1",
+    "@types/ws": "^8.18.1",
+    "express": "^5.1.0",
+    "merlmovie-sdk": "file:..",
+    "ws": "^8.18.1"
   }
 }
