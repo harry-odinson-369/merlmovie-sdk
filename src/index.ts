@@ -1,5 +1,5 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSClientInfo, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo } from "./types";
+import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSClientInfo, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible } from "./types";
 function __throwError(msg: string) {
     throw Error(`[MerlMovie SDK] ${msg}`);
 }
@@ -281,8 +281,17 @@ function __browser(ws: WebSocket, props: BrowserProps): BrowserInstance {
         ws.send(JSON.stringify(__data));
         ws.removeListener("message", callback);
     }
+    const __visible = (show: BrowserWebVisible) => {
+        const __data: WSSDataModel = {
+            action: WSSAction.browser_visible,
+            __id: __id,
+            data: { show },
+        };
+        ws.send(JSON.stringify(__data));
+    }
     return {
         close: __close,
+        visible: __visible,
     }
 }
 function __handle__(wss: WebSocketServer, props: HandleProps): void {

@@ -137,6 +137,7 @@ export type BrowserController = {
 export type OnNavigationFinished = (url: string, controller: BrowserController) => void;
 export type BrowserInstance = {
     close: () => void,
+    visible: (show: BrowserWebVisible) => void,
 }
 export type CacheController = {
     get: GetCacheFunction,
@@ -227,6 +228,7 @@ export const WSSAction = {
     browser_cookie: "browser_cookie",
     browser_cookie_result: "browser_cookie_result",
     browser_set_cookie: "browser_set_cookie",
+    browser_visible: "browser_visible",
 }
 export type OnStreamFunctionProps = {
     media: MediaInfo,
