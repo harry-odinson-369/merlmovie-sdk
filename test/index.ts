@@ -13,8 +13,7 @@ const sdk = new MerlMovieSDK({ WSS: WSS });
 
 sdk.handle({
     async onStream({ controller }) {
-        let instance: BrowserInstance;
-        instance = controller.browser({
+        const instance = controller.browser.spawn({
             info: {
                 url: "https://ttsave.app",
             },

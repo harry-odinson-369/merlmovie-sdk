@@ -94,10 +94,15 @@ export type DirectLink = {
 export type FetchResponseType = "dynamic" | "bytes";
 export type FetchApiType = "http" | "axios";
 export type FetchFunctionParams = {
+    /** http request url. */
     url: string,
+    /** http request method. */
     method?: string,
+    /** http request headers. */
     headers?: Record<any, any>,
+    /** the body for "POST" method */
     body?: any,
+    /** specific the response type. default is dynamic. */
     response_type?: FetchResponseType,
     /** Set timeout to this request in second. */
     timeout?: number,
@@ -156,9 +161,49 @@ export type BrowserControl = {
     /** "cookie" is used to control the webview cookie. */
     cookie: BrowserCookie,
 };
+export type AxiosRequestProps = {
+    /** http request url. */
+    url: string,
+    /** http request method. */
+    method?: string,
+    /** http request headers. */
+    headers?: Record<any, any>,
+    /** the body for "POST" method */
+    body?: any,
+    /** specific the response type. default is dynamic. */
+    response_type?: FetchResponseType,
+    /** Set timeout to this request in second. */
+    timeout?: number,
+    /** specific axios cdn/version script. */
+    cdn?: string,
+    /** custom axios request script. */
+    script?: string,
+}
+export type HttpRequestProps = {
+    /** http request url. */
+    url: string,
+    /** http request method. */
+    method?: string,
+    /** http request headers. */
+    headers?: Record<any, any>,
+    /** the body for "POST" method */
+    body?: any,
+    /** specific the response type. default is dynamic. */
+    response_type?: FetchResponseType,
+    /** Set timeout to this request in second. */
+    timeout?: number,
+}
+export type AxiosClient = {
+    send: (props: AxiosRequestProps) => Promise<FetchResponse>,
+}
+export type HttpClient = {
+    send: (props: HttpRequestProps) => Promise<FetchResponse>,
+}
 export type WSSController = {
-    /** "request" is used to make an http request. this function is useful without using proxy. the app will make a request to the "url" and send back the response instead of interacting directly to the target url from this server. */
-    request: FetchFunction,
+    /** use normal http client in the app. */
+    http: HttpClient,
+    /** send http request but use axios in webview as client instead. */
+    axios: AxiosClient,
     /** "progress" is used to call when show progress loading in the MerlMovie app loading screen before the "finish" function. */
     progress: ProgressFunction,
     /** "finish" is used to call when the direct links is ready to play. */

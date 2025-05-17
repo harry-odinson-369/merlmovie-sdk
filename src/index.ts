@@ -1,5 +1,5 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible } from "./types";
+import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps } from "./types";
 
 export * from './types';
 
@@ -282,6 +282,34 @@ export default class MerlMovieSDK {
         }
     }
 
+    private __axios_request(ws: WebSocket, props: AxiosRequestProps): Promise<FetchResponse> {
+        return this._request(ws, {
+            url: props.url,
+            method: props.method,
+            headers: props.headers,
+            body: props.body,
+            response_type: props.response_type,
+            timeout: props.timeout,
+            api: "axios",
+            axios: {
+                cdn: props.cdn,
+                script: props.script,
+            }
+        });
+    }
+
+    private __http_request(ws: WebSocket, props: HttpRequestProps): Promise<FetchResponse> {
+        return this._request(ws, {
+            url: props.url,
+            method: props.method,
+            headers: props.headers,
+            body: props.body,
+            response_type: props.response_type,
+            timeout: props.timeout,
+            api: "http",
+        });
+    }
+
     private __handle__(wss: WebSocketServer, props: HandleProps): void {
         wss.on("connection", (ws, msg) => {
             const request = new WSSRequestInfo(msg);
@@ -295,7 +323,12 @@ export default class MerlMovieSDK {
                             media: wss_data.data as MediaInfo,
                             request: request,
                             controller: {
-                                request: (props) => this._request(ws, props),
+                                http: {
+                                    send: (props) => this.__http_request(ws, props),
+                                },
+                                axios: {
+                                    send: (props) => this.__axios_request(ws, props),
+                                },
                                 progress: (percent) => this._send_progress(ws, percent),
                                 finish: (data: DirectLink) => this._send_final_result(ws, data),
                                 failed: (status, message) => this._send_failed(ws, status, message),
