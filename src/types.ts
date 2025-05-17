@@ -36,7 +36,12 @@ export class WSSRequestInfo {
         const __xci__ = this.query.get(__key);
         if (__xci__) {
             let text = Buffer.from(__xci__, 'base64').toString("utf-8");
-            client_info = JSON.parse(text);
+            let parsed = JSON.parse(text);
+            if (typeof parsed === "string") parsed = JSON.parse(parsed);
+            client_info = {
+                app: parsed.app_info,
+                device: parsed.device_info,
+            };
         } else {
             client_info = {
                 app: DefaultAppInfo,
@@ -145,6 +150,12 @@ export type CacheController = {
     delete: DeleteCacheFunction,
 }
 export type BrowserFunction = (props: BrowserProps) => BrowserInstance;
+export type BrowserControl = {
+    /** spawn a webview in the MerlMovie app. */
+    spawn: BrowserFunction,
+    /** "cookie" is used to control the webview cookie. */
+    cookie: BrowserCookie,
+};
 export type WSSController = {
     /** "request" is used to make an http request. this function is useful without using proxy. the app will make a request to the "url" and send back the response instead of interacting directly to the target url from this server. */
     request: FetchFunction,
@@ -154,12 +165,10 @@ export type WSSController = {
     finish: FinishFunction,
     /** "failed" is used to call when the error occurred. */
     failed: FailedFunction,
-    /** spawn a webview in the MerlMovie app. */
-    browser: BrowserFunction,
+    /** "browser" is used to control the headless browser to scrape data from this html. */
+    browser: BrowserControl,
     /** "cache" is used to control cache data in the MerlMovie for this plugin. only string value is accepted.*/
     cache: CacheController,
-    /** "cookie" is used to control the webview cookie. */
-    cookie: BrowserCookie,
     /** "session_id" is generated when a client is connected once. */
     session_id: string,
 }
