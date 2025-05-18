@@ -174,7 +174,11 @@ export default class MerlMovieSDK {
             await new Promise(resolve => setTimeout(resolve, 500));
         }
         ws.removeListener("message", callback);
-        return result;
+        try {
+            result = JSON.parse(result);
+        } catch {}
+
+        return result || "";
     }
 
     private __setBrowserCookie(ws: WebSocket, url: string, cookie: string) {
