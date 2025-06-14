@@ -245,7 +245,7 @@ export type AppInfo = {
     package_name: string,
 }
 export type PluginMetadata = {
-    open_type: "player" | "webview_player" | "webview",
+    open_type: "player" | "webview",
     logo_background_color?: string,
     stream_type: "api" | "internal" | "url" | "webview" | "iframe",
     media_type?: "multi" | "movie" | "tv",
