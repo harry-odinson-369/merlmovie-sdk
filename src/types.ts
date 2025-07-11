@@ -90,6 +90,12 @@ export type SubtitleLink = {
 export type DirectLink = {
     qualities: QualityLink[],
     subtitles: SubtitleLink[],
+    status?: "FINAL_RESULT" | "PROGRESS_STATUS" | "WEBVIEW_PLAYER",
+    website?: string,
+    payload?: Record<any, any>,
+    source_name?: string,
+    title?: string,
+    thumbnail?: string,
 }
 export type FetchResponseType = "dynamic" | "bytes";
 export type FetchApiType = "http" | "axios";
