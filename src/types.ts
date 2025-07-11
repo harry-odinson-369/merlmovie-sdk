@@ -87,6 +87,10 @@ export type SubtitleLink = {
         extension: SubtitleFetchExtension,
     }
 }
+export type DirectLinkError = {
+    status: number,
+    message: string,
+}
 export type DirectLink = {
     qualities: QualityLink[],
     subtitles: SubtitleLink[],
@@ -96,6 +100,7 @@ export type DirectLink = {
     source_name?: string,
     title?: string,
     thumbnail?: string,
+    _error?: DirectLinkError,
 }
 export type FetchResponseType = "dynamic" | "bytes";
 export type FetchApiType = "http" | "axios";
