@@ -87,6 +87,7 @@ export type SubtitleLink = {
     link: string,
     headers?: Record<any, any>,
     type?: SubtitleRootType,
+    is_default?: boolean,
     key?: {
         name: string,
         link: string,

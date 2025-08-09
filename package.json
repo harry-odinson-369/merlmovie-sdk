@@ -1,6 +1,6 @@
 {
   "name": "merlmovie-sdk",
-  "version": "16.2.0",
+  "version": "16.2.1",
   "description": "A MerlMovie SDK to handle WebSocket request from plugin.",
   "homepage": "https://merlmovie.org",
   "repository": {
