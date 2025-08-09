@@ -74,6 +74,7 @@ export type QualityLink = {
     name: string,
     link: string,
     headers?: Record<any, any>,
+    use_proxy?: boolean,
     skip_intro?: {
         start?: number,
         end?: number,
