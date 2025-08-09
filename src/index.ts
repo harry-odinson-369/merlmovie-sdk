@@ -1,5 +1,5 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps } from "./types";
+import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps, WSSSelectModel } from "./types";
 
 export * from './types';
 
@@ -176,7 +176,7 @@ export default class MerlMovieSDK {
         ws.removeListener("message", callback);
         try {
             result = JSON.parse(result);
-        } catch {}
+        } catch { }
 
         return result || "";
     }
@@ -314,6 +314,36 @@ export default class MerlMovieSDK {
         });
     }
 
+    private __select_items(ws: WebSocket, items: Array<WSSSelectModel>): Promise<WSSSelectModel | null | undefined> {
+        return new Promise<WSSSelectModel | null | undefined>(async resolve => {
+            let result: WSSSelectModel | null | undefined;
+            let responed = false;
+            const __id = this.uniqueId;
+            const callback = (raw: RawData) => {
+                const wss = this._paseWSSData(raw.toString("utf-8"));
+                if (wss?.action === WSSAction.select_result && wss.__id === __id) {
+                    result = wss.data.result;
+                    responed = true;
+                }
+            }
+            ws.on("message", callback);
+            const data: WSSDataModel = {
+                action: WSSAction.select,
+                __id: __id,
+                data: {
+                    items: items,
+                }
+            }
+            ws.send(JSON.stringify(data));
+            while (true) {
+                if (responed) break;
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            ws.removeListener("message", callback);
+            resolve(result);
+        });
+    }
+
     private __handle__(wss: WebSocketServer, props: HandleProps): void {
         wss.on("connection", (ws, msg) => {
             const request = new WSSRequestInfo(msg);
@@ -336,6 +366,7 @@ export default class MerlMovieSDK {
                                 progress: (percent) => this._send_progress(ws, percent),
                                 finish: (data: DirectLink) => this._send_final_result(ws, data),
                                 failed: (status, message) => this._send_failed(ws, status, message),
+                                select: (items: Array<WSSSelectModel>) => this.__select_items(ws, items),
                                 browser: {
                                     spawn: (__props) => this.__spawn(ws, __props),
                                     cookie: {

@@ -210,6 +210,7 @@ export type AxiosClient = {
 export type HttpClient = {
     send: (props: HttpRequestProps) => Promise<FetchResponse>,
 }
+export type WSSSelectFunction = (items: Array<WSSSelectModel>) => Promise<WSSSelectModel | null | undefined>;
 export type WSSController = {
     /** use normal http client in the app. */
     http: HttpClient,
@@ -221,6 +222,8 @@ export type WSSController = {
     finish: FinishFunction,
     /** "failed" is used to call when the error occurred. */
     failed: FailedFunction,
+    /** "select" is used to show user which item is the target to scrape. */
+    select: WSSSelectFunction,
     /** "browser" is used to control the headless browser to scrape data from this html. */
     browser: BrowserControl,
     /** "cache" is used to control cache data in the MerlMovie for this plugin. only string value is accepted.*/
@@ -231,6 +234,12 @@ export type WSSController = {
 export type WSSDataModel = {
     action: string,
     __id: string,
+    data: Record<any, any>,
+}
+export type WSSSelectModel = {
+    title: string,
+    subtitle: string,
+    image: string,
     data: Record<any, any>,
 }
 export type WSSFetchMethod = string;
@@ -295,6 +304,8 @@ export const WSSAction = {
     browser_cookie_result: "browser_cookie_result",
     browser_set_cookie: "browser_set_cookie",
     browser_visible: "browser_visible",
+    select: "select",
+    select_result: "select_result",
 }
 export type OnStreamFunctionProps = {
     media: MediaInfo,
