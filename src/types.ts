@@ -74,6 +74,10 @@ export type QualityLink = {
     name: string,
     link: string,
     headers?: Record<any, any>,
+    skip_intro?: {
+        start?: number,
+        end?: number,
+    }
 }
 export type SubtitleRootType = "fetch" | "normal";
 export type SubtitleFetchExtension = "gz" | "zip" | "text";
