@@ -1,5 +1,6 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
 import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps, WSSSelectModel } from "./types";
+import { connect, ConnectResult } from "puppeteer-real-browser";
 
 export * from './types';
 
@@ -344,6 +345,26 @@ export default class MerlMovieSDK {
         });
     }
 
+    private async __puppeteer(ws: WebSocket): Promise<ConnectResult> {
+        const instance = await connect({ connectOption: { defaultViewport: null } });
+        instance.page.setRequestInterception(true);
+        instance.page.on("request", async (req) => {
+            const response = await this.__http_request(ws, {
+                url: req.url(),
+                headers: req.headers(),
+                body: req.postData() || null,
+                method: req.method().toLowerCase(),
+                response_type: "bytes",
+            });
+            req.respond({
+                status: response.status,
+                headers: response.headers || undefined,
+                body: Uint8Array.from(response.data),
+            });
+        });
+        return instance;
+    }
+
     private __handle__(wss: WebSocketServer, props: HandleProps): void {
         wss.on("connection", (ws, msg) => {
             const request = new WSSRequestInfo(msg);
@@ -369,6 +390,7 @@ export default class MerlMovieSDK {
                                 select: (items: Array<WSSSelectModel>) => this.__select_items(ws, items),
                                 browser: {
                                     spawn: (__props) => this.__spawn(ws, __props),
+                                    puppeteer: this.__puppeteer(ws),
                                     cookie: {
                                         get: (url) => this.__getBrowserCookie(ws, url),
                                         set: async (url, cookie) => this.__setBrowserCookie(ws, url, cookie),

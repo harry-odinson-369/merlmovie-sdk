@@ -1,5 +1,6 @@
 import { IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
+import { ConnectResult } from "puppeteer-real-browser";
 
 export class WSSRequestInfo {
     private request: IncomingMessage;
@@ -169,6 +170,8 @@ export type BrowserFunction = (props: BrowserProps) => BrowserInstance;
 export type BrowserControl = {
     /** spawn a webview in the MerlMovie app. */
     spawn: BrowserFunction,
+    /** spawn a puppeteer browser on this server but use http request on client side interception. */
+    puppeteer: Promise<ConnectResult>,
     /** "cookie" is used to control the webview cookie. */
     cookie: BrowserCookie,
 };
