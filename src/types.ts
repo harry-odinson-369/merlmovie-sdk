@@ -42,11 +42,21 @@ export class WSSRequestInfo {
             client_info = {
                 app: parsed.app_info,
                 device: parsed.device_info,
+                plugin: parsed.plugin_info,
             };
         } else {
             client_info = {
                 app: DefaultAppInfo,
                 device: DefaultDeviceInfo,
+                plugin: {
+                    name: "Unknwon",
+                    embed_url: "",
+                    author: "Unknown",
+                    image: "",
+                    official_website: "",
+                    open_type: "player",
+                    stream_type: "api",
+                }
             };
         }
         return client_info;
@@ -276,7 +286,7 @@ export type AppInfo = {
 export type PluginMetadata = {
     open_type: "player" | "webview",
     logo_background_color?: string,
-    stream_type: "api" | "internal" | "url" | "webview" | "iframe",
+    stream_type: "api" | "webview",
     media_type?: "multi" | "movie" | "tv",
     embed_url: string,
     tv_embed_url?: string,
@@ -344,4 +354,5 @@ export type InitialConfig = {
 export type WSSClientInfo = {
     device: DeviceInfo,
     app: AppInfo,
+    plugin: PluginMetadata,
 }

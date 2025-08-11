@@ -12,7 +12,7 @@ const WSS = new WebSocketServer({ server, path: "/ws" });
 const sdk = new MerlMovieSDK({ WSS: WSS });
 
 sdk.handle({
-    async onStream({ controller }) {
+    async onStream({ controller, media, request }) {
         const instance = controller.browser.spawn({
             info: {
                 url: "https://ttsave.app",

@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/harry-odinson-369/merlmovie-sdk/refs/heads/main/merlmovie.png" alt="Stremio" width="300" />
 
-The **MerlMovie SDK** was developed by Harry Odinson to greatly simplify Node.js plugin requests for the streaming feature.
+The **MerlMovie SDK** is a powerful software package developed by Harry Odinson to greatly simplify Node.js (TypeScript) plugin requests for the streaming feature.
 
 **Note: This package only works for WebSocket connections! If you want to handle HTTP requests, just use the [express](https://www.npmjs.com/package/express)/etc package and follow the [documentation](https://merlmovie.org/docs/plugin) here.**
 
@@ -17,7 +17,7 @@ const sdk = new MerlMovieSDK({ HOST: "localhost", PORT: 8080 });
 
 sdk.handle({
     //This function used to receive the request from user and it contain all metadata needed.
-    onStream(data, controller, request) {
+    onStream({controller, request, media}) {
         
         //Do the logic here
 
@@ -48,15 +48,6 @@ sdk.handle({
 
     },
 });
-
-//You can use this function to test for the result.
-sendTest("ws://localhost:8080", {
-    media_info: {
-        media_id: "76479",
-        season_id: "1",
-        episode_id: "1",
-    }
-}).then(result => console.log(result));
 
 ```
 🎉✌️ Now you can run it on your self-hosted server normally.
