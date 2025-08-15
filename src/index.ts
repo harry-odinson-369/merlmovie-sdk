@@ -248,10 +248,7 @@ export default class MerlMovieSDK {
                 ws.send(JSON.stringify(__data));
             } else if (wss?.action === WSSAction.browser_url_finished && wss.__id === __id) {
                 if (props.onNavigationFinished) {
-                    props.onNavigationFinished(wss.data.url, {
-                        evaluate: (script) => this._browserEvaluate(ws, script),
-                        click: (x, y) => this._browserClick(ws, x, y),
-                    });
+                    props.onNavigationFinished(wss.data.url);
                 }
             }
         }
@@ -284,6 +281,8 @@ export default class MerlMovieSDK {
         return {
             close: __close,
             visible: __visible,
+            evaluate: (script) => this._browserEvaluate(ws, script),
+            click: (x, y) => this._browserClick(ws, x, y),
         }
     }
 
@@ -390,7 +389,7 @@ export default class MerlMovieSDK {
                                 select: (items: Array<WSSSelectModel>) => this.__select_items(ws, items),
                                 browser: {
                                     spawn: (__props) => this.__spawn(ws, __props),
-                                    puppeteer: this.__puppeteer(ws),
+                                    puppeteer: () => this.__puppeteer(ws),
                                     cookie: {
                                         get: (url) => this.__getBrowserCookie(ws, url),
                                         set: async (url, cookie) => this.__setBrowserCookie(ws, url, cookie),

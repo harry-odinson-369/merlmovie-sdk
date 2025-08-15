@@ -168,13 +168,11 @@ export type BrowserCookie = {
     get: (url: string) => Promise<string>,
     set: (url: string, cookie: string) => Promise<void>,
 };
-export type BrowserController = {
-    evaluate: (script: string) => Promise<string>,
-    click: (x: number, y: number) => void,
-}
-export type OnNavigationFinished = (url: string, controller: BrowserController) => void;
+export type OnNavigationFinished = (url: string) => void;
 export type BrowserInstance = {
     close: () => void,
+    evaluate: (script: string) => Promise<string>,
+    click: (x: number, y: number) => void,
     visible: (show: BrowserWebVisible) => void,
 }
 export type CacheController = {
@@ -182,12 +180,11 @@ export type CacheController = {
     set: SetCacheFunction,
     delete: DeleteCacheFunction,
 }
-export type BrowserFunction = (props: BrowserProps) => BrowserInstance;
 export type BrowserControl = {
     /** spawn a webview in the MerlMovie app. */
-    spawn: BrowserFunction,
+    spawn: (props: BrowserProps) => BrowserInstance,
     /** spawn a puppeteer browser on this server but use http request on client side interception. */
-    puppeteer: Promise<ConnectResult>,
+    puppeteer: () => Promise<ConnectResult>,
     /** "cookie" is used to control the webview cookie. */
     cookie: BrowserCookie,
 };
