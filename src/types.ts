@@ -256,6 +256,7 @@ export type WSSSelectModel = {
     title: string,
     subtitle: string,
     image: string,
+    image_type: "poster" | "banner",
     data: Record<any, any>,
 }
 export type WSSFetchMethod = string;
