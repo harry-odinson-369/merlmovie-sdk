@@ -344,8 +344,8 @@ export default class MerlMovieSDK {
         });
     }
 
-    private async __puppeteer(ws: WebSocket): Promise<PageWithCursor | undefined> {
-        const page = await Puppetool.instance.getPage({ fresh: true, turnstile: true });
+    private async __puppetool(ws: WebSocket, props?: { fresh?: boolean, turnstile?: boolean }): Promise<PageWithCursor | undefined> {
+        const page = await Puppetool.instance.getPage(props ?? { fresh: true, turnstile: true });
         if (page) {
             page?.setRequestInterception(true);
             page?.on("request", async (req) => {
@@ -391,7 +391,7 @@ export default class MerlMovieSDK {
                                 select: (items: Array<WSSSelectModel>) => this.__select_items(ws, items),
                                 browser: {
                                     spawn: (__props) => this.__spawn(ws, __props),
-                                    puppeteer: () => this.__puppeteer(ws),
+                                    puppetool: (props) => this.__puppetool(ws, props),
                                     cookie: {
                                         get: (url) => this.__getBrowserCookie(ws, url),
                                         set: async (url, cookie) => this.__setBrowserCookie(ws, url, cookie),

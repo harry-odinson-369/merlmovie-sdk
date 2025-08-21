@@ -184,7 +184,7 @@ export type BrowserControl = {
     /** spawn a webview in the MerlMovie app. */
     spawn: (props: BrowserProps) => BrowserInstance,
     /** spawn a puppeteer browser on this server but use http request on client side interception. */
-    puppeteer: () => Promise<PageWithCursor | undefined>,
+    puppetool: (props?: { fresh?: boolean, turnstile?: boolean }) => Promise<PageWithCursor | undefined>,
     /** "cookie" is used to control the webview cookie. */
     cookie: BrowserCookie,
 };
