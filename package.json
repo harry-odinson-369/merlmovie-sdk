@@ -1,9 +1,10 @@
 {
   "name": "merlmovie-sdk",
-  "version": "16.2.9",
+  "version": "16.3.0",
   "description": "A MerlMovie SDK to handle WebSocket request from plugin.",
   "homepage": "https://merlmovie.org",
   "repository": {
+    "type": "git",
     "url": "https://github.com/harry-odinson-369/merlmovie-sdk"
   },
   "keywords": [
@@ -13,9 +14,9 @@
   ],
   "license": "ISC",
   "author": "harry-odinson",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "cd test && npm test",
     "debug": "cd test && npm run dev",
@@ -27,7 +28,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
-    "puppetool": "^1.0.3",
+    "puppetool": "^1.0.6",
     "ws": "^8.18.1"
   }
 }
