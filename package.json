@@ -1,6 +1,6 @@
 {
   "name": "merlmovie-sdk",
-  "version": "16.2.4",
+  "version": "16.2.5",
   "description": "A MerlMovie SDK to handle WebSocket request from plugin.",
   "homepage": "https://merlmovie.org",
   "repository": {
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
-    "puppeteer-real-browser": "^1.4.3",
+    "puppetool": "^1.0.1",
     "ws": "^8.18.1"
   }
 }

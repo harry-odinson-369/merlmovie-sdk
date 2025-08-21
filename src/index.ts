@@ -1,6 +1,6 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
 import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps, WSSSelectModel } from "./types";
-import { connect, ConnectResult } from "puppeteer-real-browser";
+import Puppetool, { PageWithCursor } from "puppetool";
 
 export * from './types';
 
@@ -344,24 +344,26 @@ export default class MerlMovieSDK {
         });
     }
 
-    private async __puppeteer(ws: WebSocket): Promise<ConnectResult> {
-        const instance = await connect({ connectOption: { defaultViewport: null } });
-        instance.page.setRequestInterception(true);
-        instance.page.on("request", async (req) => {
-            const response = await this.__http_request(ws, {
-                url: req.url(),
-                headers: req.headers(),
-                body: req.postData() || null,
-                method: req.method().toLowerCase(),
-                response_type: "bytes",
+    private async __puppeteer(ws: WebSocket): Promise<PageWithCursor | undefined> {
+        const page = await Puppetool.instance.getPage({ fresh: true, turnstile: true });
+        if (page) {
+            page?.setRequestInterception(true);
+            page?.on("request", async (req) => {
+                const response = await this.__http_request(ws, {
+                    url: req.url(),
+                    headers: req.headers(),
+                    body: req.postData() || null,
+                    method: req.method().toLowerCase(),
+                    response_type: "bytes",
+                });
+                req.respond({
+                    status: response.status,
+                    headers: response.headers || undefined,
+                    body: Uint8Array.from(response.data),
+                });
             });
-            req.respond({
-                status: response.status,
-                headers: response.headers || undefined,
-                body: Uint8Array.from(response.data),
-            });
-        });
-        return instance;
+        }
+        return page;
     }
 
     private __handle__(wss: WebSocketServer, props: HandleProps): void {
