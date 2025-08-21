@@ -12,7 +12,7 @@ export default class MerlMovieSDK {
 
     config?: InitialConfig;
 
-    private defaultWSS = (config?: InitialConfig) => (config?.WSS || new WebSocket.Server({ host: config?.HOST, port: config?.PORT }));
+    private defaultWSS = (config?: InitialConfig) => (config?.WSS || new WebSocketServer({ host: config?.HOST, port: config?.PORT }));
     handle(props: HandleProps): void;
     handle(callback: OnStreamFunction): void;
     handle(wss: WebSocketServer, callback: OnStreamFunction): void;

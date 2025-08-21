@@ -13,22 +13,8 @@ const sdk = new MerlMovieSDK({ WSS: WSS });
 
 sdk.handle({
     async onStream({ controller, media, request }) {
-        const instance = controller.browser.spawn({
-            info: {
-                url: "https://ttsave.app",
-            },
-            onNavigationFinished(url, control) {
-                let showed = false;
-                setInterval(() => {
-                    if (!showed) {
-                        instance.visible("yes");
-                    } else {
-                        instance.visible("no");
-                    }
-                    showed = !showed;
-                }, 2000);
-            }
-        });
+        const page = await controller.browser.puppetool();
+        page?.goto("https://google.com");
     },
     onConnection() {
         console.log("A new client has connected!");

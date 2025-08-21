@@ -4,8 +4,8 @@
   "description": "",
   "license": "ISC",
   "author": "harryodinson",
-  "type": "commonjs",
   "main": "./dist/index.js",
+  "type": "module",
   "scripts": {
     "test": "cd ../ && npm run build && cd test && npm install ../ && tsc --build --verbose && node ./dist/index.js",
     "dev": "cd ../ && npm run build && cd test && npm install ../ && tsc --build --verbose && nodemon ./src/index.ts"
@@ -20,6 +20,7 @@
     "@types/ws": "^8.18.1",
     "express": "^5.1.0",
     "merlmovie-sdk": "file:..",
+    "puppeteer": "^24.17.0",
     "ws": "^8.18.1"
   }
 }
