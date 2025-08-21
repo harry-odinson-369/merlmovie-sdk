@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
-    "puppetool": "^1.0.1",
+    "puppetool": "^1.0.2",
     "ws": "^8.18.1"
   }
 }
