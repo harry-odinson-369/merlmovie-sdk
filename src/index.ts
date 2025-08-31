@@ -134,6 +134,7 @@ export default class MerlMovieSDK {
             method: "get",
         });
         if (response.status === 200) return response.data as T;
+        return undefined;
     }
 
     private async __setCache(ws: WebSocket, key: string, value: any): Promise<boolean> {
@@ -289,7 +290,6 @@ export default class MerlMovieSDK {
     private __axios_request(ws: WebSocket, props: AxiosRequestProps): Promise<FetchResponse> {
         return this._request(ws, {
             url: props.url,
-            initial_origin: props.initial_origin,
             method: props.method,
             headers: props.headers,
             body: props.body,
