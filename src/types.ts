@@ -124,6 +124,8 @@ export type FetchApiType = "http" | "axios";
 export type FetchFunctionParams = {
     /** http request url. */
     url: string,
+    /** initial_origin used to load the webview for the first time and then start the request using "url" with axios. it good to use a url that return 404 page for the fast request instead of wait until the "url" origin load time before using axios. */
+    initial_origin?: string,
     /** http request method. */
     method?: string,
     /** http request headers. */
@@ -191,6 +193,8 @@ export type BrowserControl = {
 export type AxiosRequestProps = {
     /** http request url. */
     url: string,
+    /** initial_origin used to load the webview for the first time and then start the request using "url" with axios. it good to use a url that return 404 page for the fast request instead of wait until the "url" origin load time before using axios. */
+    initial_origin?: string,
     /** http request method. */
     method?: string,
     /** http request headers. */
