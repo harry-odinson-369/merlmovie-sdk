@@ -376,10 +376,15 @@ export default class MerlMovieSDK {
                 const wss_data = this._paseWSSData(raw.toString("utf-8"));
                 if (wss_data) {
                     if (wss_data.action === WSSAction.stream) {
+                        const clientInfo: WSSClientInfo = {
+                            app: wss_data.data.client.app_info,
+                            device: wss_data.data.client.device_info,
+                            plugin: wss_data.data.client.plugin_info,
+                        };
                         props.onStream({
                             media: wss_data.data.media as MediaInfo,
                             request: request,
-                            client: wss_data.data.client as WSSClientInfo,
+                            client: clientInfo,
                             controller: {
                                 http: {
                                     send: (props) => this.__http_request(ws, props),
