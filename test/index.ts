@@ -12,7 +12,9 @@ const WSS = new WebSocketServer({ server, path: "/ws" });
 const sdk = new MerlMovieSDK({ WSS: WSS });
 
 sdk.handle({
-    async onStream({ controller, media, request }) {
+    async onStream({ controller, media, request, client }) {
+        console.log(client);
+        
         const page = await controller.browser.puppetool();
         page?.goto("https://google.com");
     },

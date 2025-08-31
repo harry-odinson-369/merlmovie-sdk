@@ -1,5 +1,5 @@
 import { RawData, WebSocket, WebSocketServer } from "ws";
-import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps, WSSSelectModel } from "./types";
+import { DirectLink, FetchFunctionParams, FetchResponse, HandleProps, InitialConfig, MediaInfo, OnStreamFunction, PluginMetadata, BrowserProps, BrowserInstance, WSSAction, WSSDataModel, WSSRequestInfo, DefaultAppInfo, DefaultDeviceInfo, BrowserWebVisible, AxiosRequestProps, HttpRequestProps, WSSSelectModel, WSSClientInfo } from "./types";
 import Puppetool, { PageWithCursor } from "puppetool";
 
 export * from './types';
@@ -377,8 +377,9 @@ export default class MerlMovieSDK {
                 if (wss_data) {
                     if (wss_data.action === WSSAction.stream) {
                         props.onStream({
-                            media: wss_data.data as MediaInfo,
+                            media: wss_data.data.media as MediaInfo,
                             request: request,
+                            client: wss_data.data.client as WSSClientInfo,
                             controller: {
                                 http: {
                                     send: (props) => this.__http_request(ws, props),

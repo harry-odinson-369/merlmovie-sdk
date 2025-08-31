@@ -31,36 +31,6 @@ export class WSSRequestInfo {
     get method() {
         return this.request.method;
     }
-    get client() {
-        let client_info: WSSClientInfo;
-        const __key = "__xci__";
-        const __xci__ = this.query.get(__key);
-        if (__xci__) {
-            let text = Buffer.from(__xci__, 'base64').toString("utf-8");
-            let parsed = JSON.parse(text);
-            if (typeof parsed === "string") parsed = JSON.parse(parsed);
-            client_info = {
-                app: parsed.app_info,
-                device: parsed.device_info,
-                plugin: parsed.plugin_info,
-            };
-        } else {
-            client_info = {
-                app: DefaultAppInfo,
-                device: DefaultDeviceInfo,
-                plugin: {
-                    name: "Unknwon",
-                    embed_url: "",
-                    author: "Unknown",
-                    image: "",
-                    official_website: "",
-                    open_type: "player",
-                    stream_type: "api",
-                }
-            };
-        }
-        return client_info;
-    }
 }
 export const DefaultDeviceInfo = {
     is_physical: false,
@@ -330,8 +300,9 @@ export const WSSAction = {
 }
 export type OnStreamFunctionProps = {
     media: MediaInfo,
+    client: WSSClientInfo,
     controller: WSSController,
-    request: WSSRequestInfo
+    request: WSSRequestInfo,
 };
 export type ClosedReason = {
     code: number,
