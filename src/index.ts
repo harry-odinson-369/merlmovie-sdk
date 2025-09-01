@@ -83,6 +83,7 @@ export default class MerlMovieSDK {
             let __props = props;
             __props.method = __props.method || "get";
             __props.api = __props.api || "http";
+            __props.with_credentials = __props.with_credentials || false;
             let __response: FetchResponse | undefined;
             const callback = (raw: RawData) => {
                 const data = this._paseWSSData(raw.toString("utf-8"));
@@ -291,6 +292,8 @@ export default class MerlMovieSDK {
         return this._request(ws, {
             url: props.url,
             method: props.method,
+            initial_origin: props.initial_origin,
+            with_credentials: props.with_credentials,
             headers: props.headers,
             body: props.body,
             response_type: props.response_type,

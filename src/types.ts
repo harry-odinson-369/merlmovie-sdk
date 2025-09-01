@@ -42,7 +42,7 @@ export const DefaultAppInfo = {
     app_name: "MerlMovie",
     build_number: "0",
     install_store: "unknown",
-    package_name: "com.NOUVANNET.qr",
+    package_name: "com.NOUVANNET.merlmovie",
     version: "9.8.8",
 };
 export type FetchResponse = {
@@ -94,6 +94,12 @@ export type FetchApiType = "http" | "axios";
 export type FetchFunctionParams = {
     /** http request url. */
     url: string,
+    /** initial_origin is used to load the first origin document in webview for the first time to make it a bit faster. 
+     * 
+     * for example use 404 page or any url that response fast. the host must match with the "url" property*/
+    initial_origin?: string,
+    /** with_credentials used to set the axios to use credentials within each request. */
+    with_credentials?: boolean,
     /** http request method. */
     method?: string,
     /** http request headers. */
@@ -106,6 +112,7 @@ export type FetchFunctionParams = {
     timeout?: number,
     /** when set to "http", this function use normal http client to make network request in the app. and "axios" is used to make http network request using axios in javascript code. */
     api?: FetchApiType,
+    /** custom axios settings */
     axios?: {
         /** axios cdn url. default is "https://cdn.jsdelivr.net/npm/axios@1.8.4/dist/axios.min.js" */
         cdn?: string,
@@ -159,6 +166,12 @@ export type BrowserControl = {
 export type AxiosRequestProps = {
     /** http request url. */
     url: string,
+    /** initial_origin is used to load the first origin document in webview for the first time to make it a bit faster. 
+     * 
+     * for example use 404 page or any url that response fast. the host must match with the "url" property*/
+    initial_origin?: string,
+    /** with_credentials used to set the axios to use credentials within each request. */
+    with_credentials?: boolean,
     /** http request method. */
     method?: string,
     /** http request headers. */
@@ -241,6 +254,7 @@ export type DeviceInfo = {
     os_version: string,
     is_physical: boolean,
     model: string,
+    local?: string,
 }
 export type AppInfo = {
     version: string,
