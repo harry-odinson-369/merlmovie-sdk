@@ -121,19 +121,15 @@ export type FetchFunctionParams = {
     }
 }
 export type BrowserWebVisible = "no" | "yes";
-export type BrowserInfo = {
-    url: string,
+export type BrowserProps = {
     headers?: Record<any, any>,
     visible?: BrowserWebVisible,
-};
-export type BrowserProps = {
-    info: BrowserInfo,
     onNavigationRequest?: OnNavigationRequest,
     onNavigationFinished?: OnNavigationFinished,
 };
 export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchResponse>;
 export type FinishFunction = (data: DirectLink) => void;
-export type ProgressFunction = (percent: number) => void;
+export type ProgressFunction = (percent: number | "auto") => void;
 export type FailedFunction = (status?: number, message?: string) => void;
 export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;
@@ -157,10 +153,10 @@ export type CacheController = {
 }
 export type BrowserControl = {
     /** spawn a webview in the MerlMovie app. */
-    spawn: (props: BrowserProps) => BrowserInstance,
+    webview: (url: string, props: BrowserProps) => BrowserInstance,
     /** spawn a puppeteer browser on this server but use http request on client side interception. */
     puppetool: (props?: { fresh?: boolean, turnstile?: boolean }) => Promise<PageWithCursor | undefined>,
-    /** "cookie" is used to control the webview cookie. */
+    /** "cookie" is used to control the "webview" cookie. */
     cookie: BrowserCookie,
 };
 export type AxiosRequestProps = {

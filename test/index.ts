@@ -13,10 +13,10 @@ const sdk = new MerlMovieSDK({ WSS: WSS });
 
 sdk.handle({
     async onStream({ controller, media, request, client }) {
-        console.log(client);
-        
-        const page = await controller.browser.puppetool();
-        page?.goto("https://google.com");
+        controller.progress("auto");
+        setTimeout(() => {
+            controller.finish({ qualities: [], subtitles: [] });
+        }, 4000);
     },
     onConnection() {
         console.log("A new client has connected!");

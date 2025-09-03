@@ -120,7 +120,6 @@ export default class MerlMovieSDK {
     }
 
     private async _send_final_result(ws: WebSocket, data: DirectLink) {
-        this._send_progress(ws, 100);
         await new Promise(resolve => setTimeout(resolve, 1000));
         ws.send(JSON.stringify({ action: WSSAction.result, data: data }));
     }
@@ -235,7 +234,7 @@ export default class MerlMovieSDK {
         ws.send(JSON.stringify(data));
     }
 
-    private __spawn(ws: WebSocket, props: BrowserProps): BrowserInstance {
+    private __spawn(ws: WebSocket, url: string, props: BrowserProps): BrowserInstance {
         const __id = this.uniqueId;
         const callback = async (raw: RawData) => {
             const wss = this._paseWSSData(raw.toString("utf-8"));
@@ -256,12 +255,12 @@ export default class MerlMovieSDK {
             }
         }
         ws.on("message", callback);
-        let __info = props.info;
+        let __info = props;
         __info.visible = __info.visible || "no";
         const data: WSSDataModel = {
             action: WSSAction.browser,
             __id: __id,
-            data: __info,
+            data: { url, ...__info },
         }
         ws.send(JSON.stringify(data));
         const __close = () => {
@@ -376,6 +375,7 @@ export default class MerlMovieSDK {
             const request = new WSSRequestInfo(msg);
             const session_id = this.uniqueId;
             if (props.onConnection) props.onConnection(ws, request, session_id);
+            let __temp_prog: number = 0;
             const callback = (raw: RawData) => {
                 const wss_data = this._paseWSSData(raw.toString("utf-8"));
                 if (wss_data) {
@@ -396,12 +396,34 @@ export default class MerlMovieSDK {
                                 axios: {
                                     send: (props) => this.__axios_request(ws, props),
                                 },
-                                progress: (percent) => this._send_progress(ws, percent),
-                                finish: (data: DirectLink) => this._send_final_result(ws, data),
-                                failed: (status, message) => this._send_failed(ws, status, message),
+                                progress: async (arg) => {
+                                    if (arg === "auto") {
+                                        for (let i = 0; i < 30; i++) {
+                                            if (__temp_prog < 90) {
+                                                __temp_prog = Math.min(Math.max(__temp_prog + 3, 0), 100);
+                                                this._send_progress(ws, __temp_prog);
+                                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        __temp_prog = arg;
+                                        this._send_progress(ws, arg);
+                                    }
+                                },
+                                finish: (data: DirectLink) => {
+                                    __temp_prog = 100;
+                                    this._send_progress(ws, 100);
+                                    this._send_final_result(ws, data);
+                                },
+                                failed: (status, message) => {
+                                    __temp_prog = 100;
+                                    this._send_failed(ws, status, message);
+                                },
                                 select: (items: Array<WSSSelectModel>) => this.__select_items(ws, items),
                                 browser: {
-                                    spawn: (__props) => this.__spawn(ws, __props),
+                                    webview: (url, __props) => this.__spawn(ws, url, __props),
                                     puppetool: (props) => this.__puppetool(ws, props),
                                     cookie: {
                                         get: (url) => this.__getBrowserCookie(ws, url),
