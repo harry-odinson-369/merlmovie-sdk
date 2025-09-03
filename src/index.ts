@@ -376,6 +376,7 @@ export default class MerlMovieSDK {
             const session_id = this.uniqueId;
             if (props.onConnection) props.onConnection(ws, request, session_id);
             let __temp_prog: number = 0;
+            let __prog_paused: boolean = false;
             const callback = (raw: RawData) => {
                 const wss_data = this._paseWSSData(raw.toString("utf-8"));
                 if (wss_data) {
@@ -399,6 +400,17 @@ export default class MerlMovieSDK {
                                 progress: async (arg) => {
                                     if (arg === "auto") {
                                         for (let i = 0; i < 30; i++) {
+                                            if (__prog_paused) {
+                                                await new Promise(async resolve => {
+                                                    while (__prog_paused) {
+                                                        await new Promise(resolve0 => setTimeout(resolve0, 200));
+                                                        if (!__prog_paused) {
+                                                            resolve(undefined);
+                                                            break;
+                                                        }
+                                                    }
+                                                });
+                                            }
                                             if (__temp_prog < 90) {
                                                 __temp_prog = Math.min(Math.max(__temp_prog + 3, 0), 100);
                                                 this._send_progress(ws, __temp_prog);
@@ -421,7 +433,12 @@ export default class MerlMovieSDK {
                                     __temp_prog = 100;
                                     this._send_failed(ws, status, message);
                                 },
-                                select: (items: Array<WSSSelectModel>) => this.__select_items(ws, items),
+                                select: async (items: Array<WSSSelectModel>) => {
+                                    __prog_paused = true;
+                                    const selected = await this.__select_items(ws, items);
+                                    __prog_paused = false;
+                                    return selected;
+                                },
                                 browser: {
                                     webview: (url, __props) => this.__spawn(ws, url, __props),
                                     puppetool: (props) => this.__puppetool(ws, props),
@@ -440,7 +457,6 @@ export default class MerlMovieSDK {
                         });
                     }
                 }
-
             };
             ws.on("message", callback);
             ws.on("close", (code, reason) => {

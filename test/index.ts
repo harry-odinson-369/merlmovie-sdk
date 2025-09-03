@@ -15,7 +15,15 @@ sdk.handle({
     async onStream({ controller, media, request, client }) {
         controller.progress("auto");
         setTimeout(() => {
-            controller.finish({ qualities: [], subtitles: [] });
+            controller.select([
+                {
+                    title: "Hi",
+                    subtitle: "Hi There!",
+                    data: {},
+                    image: "",
+                    image_type: "poster"
+                }
+            ]);
         }, 4000);
     },
     onConnection() {
