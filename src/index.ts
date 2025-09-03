@@ -234,12 +234,12 @@ export default class MerlMovieSDK {
         ws.send(JSON.stringify(data));
     }
 
-    private __spawn(ws: WebSocket, url: string, props: BrowserProps): BrowserInstance {
+    private __spawn(ws: WebSocket, url: string, props?: BrowserProps, cb?: { onClosed?: () => void, onVisibleChanged?: (state: BrowserWebVisible) => void }): BrowserInstance {
         const __id = this.uniqueId;
         const callback = async (raw: RawData) => {
             const wss = this._paseWSSData(raw.toString("utf-8"));
             if (wss?.action === WSSAction.browser_url_request) {
-                const isAllow = props.onNavigationRequest ? await props.onNavigationRequest(wss.data.url, wss.data.is_main_frame) : true;
+                const isAllow = props?.onNavigationRequest ? await props.onNavigationRequest(wss.data.url, wss.data.is_main_frame) : true;
                 const __data: WSSDataModel = {
                     action: WSSAction.browser_result,
                     __id: wss.__id,
@@ -249,14 +249,14 @@ export default class MerlMovieSDK {
                 };
                 ws.send(JSON.stringify(__data));
             } else if (wss?.action === WSSAction.browser_url_finished && wss.__id === __id) {
-                if (props.onNavigationFinished) {
-                    props.onNavigationFinished(wss.data.url);
+                if (props?.onNavigationFinished) {
+                    props?.onNavigationFinished(wss.data.url);
                 }
             }
         }
         ws.on("message", callback);
-        let __info = props;
-        __info.visible = __info.visible || "no";
+        let __info = props ?? {};
+        __info.visible = __info?.visible || "no";
         const data: WSSDataModel = {
             action: WSSAction.browser,
             __id: __id,
@@ -271,6 +271,7 @@ export default class MerlMovieSDK {
             };
             ws.send(JSON.stringify(__data));
             ws.removeListener("message", callback);
+            if (cb?.onClosed) cb?.onClosed();
         }
         const __visible = (show: BrowserWebVisible) => {
             const __data: WSSDataModel = {
@@ -279,6 +280,7 @@ export default class MerlMovieSDK {
                 data: { show },
             };
             ws.send(JSON.stringify(__data));
+            if (cb?.onVisibleChanged) cb?.onVisibleChanged(show);
         }
         return {
             close: __close,
@@ -426,11 +428,13 @@ export default class MerlMovieSDK {
                                 },
                                 finish: (data: DirectLink) => {
                                     __temp_prog = 100;
+                                    __prog_paused = false;
                                     this._send_progress(ws, 100);
                                     this._send_final_result(ws, data);
                                 },
                                 failed: (status, message) => {
                                     __temp_prog = 100;
+                                    __prog_paused = false;
                                     this._send_failed(ws, status, message);
                                 },
                                 select: async (items: Array<WSSSelectModel>) => {
@@ -440,7 +444,21 @@ export default class MerlMovieSDK {
                                     return selected;
                                 },
                                 browser: {
-                                    webview: (url, __props) => this.__spawn(ws, url, __props),
+                                    webview: (url, __props) => {
+                                        if (__props.visible === "yes") __prog_paused = true;
+                                        return this.__spawn(
+                                            ws,
+                                            url,
+                                            __props,
+                                            {
+                                                onClosed() {
+                                                    __prog_paused = false;
+                                                },
+                                                onVisibleChanged(state) {
+                                                    __prog_paused = state === "yes";
+                                                },
+                                            });
+                                    },
                                     puppetool: (props) => this.__puppetool(ws, props),
                                     cookie: {
                                         get: (url) => this.__getBrowserCookie(ws, url),

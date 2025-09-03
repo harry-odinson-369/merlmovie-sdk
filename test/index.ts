@@ -15,15 +15,16 @@ sdk.handle({
     async onStream({ controller, media, request, client }) {
         controller.progress("auto");
         setTimeout(() => {
-            controller.select([
-                {
-                    title: "Hi",
-                    subtitle: "Hi There!",
-                    data: {},
-                    image: "",
-                    image_type: "poster"
-                }
-            ]);
+            const instance = controller.browser.webview("https://google.com", { visible: "yes" });
+            setTimeout(() => {
+                instance.visible("no");
+                setTimeout(() => {
+                    instance.visible("yes");
+                    setTimeout(() => {
+                        instance.visible("no");
+                    }, 4000);
+                }, 4000);
+            }, 4000);
         }, 4000);
     },
     onConnection() {
