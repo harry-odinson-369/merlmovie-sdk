@@ -153,7 +153,7 @@ export type CacheController = {
 }
 export type BrowserControl = {
     /** spawn a webview in the MerlMovie app. */
-    webview: (url: string, props: BrowserProps) => BrowserInstance,
+    webview: (url: string, props?: BrowserProps) => BrowserInstance,
     /** spawn a puppeteer browser on this server but use http request on client side interception. */
     puppetool: (props?: { fresh?: boolean, turnstile?: boolean }) => Promise<PageWithCursor | undefined>,
     /** "cookie" is used to control the "webview" cookie. */

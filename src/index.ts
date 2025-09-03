@@ -445,7 +445,7 @@ export default class MerlMovieSDK {
                                 },
                                 browser: {
                                     webview: (url, __props) => {
-                                        if (__props.visible === "yes") __prog_paused = true;
+                                        if (__props?.visible === "yes") __prog_paused = true;
                                         return this.__spawn(
                                             ws,
                                             url,
