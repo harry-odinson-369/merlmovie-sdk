@@ -120,6 +120,7 @@ export default class MerlMovieSDK {
     }
 
     private async _send_final_result(ws: WebSocket, data: DirectLink) {
+        this._send_progress(ws, 100);
         await new Promise(resolve => setTimeout(resolve, 1000));
         ws.send(JSON.stringify({ action: WSSAction.result, data: data }));
     }
