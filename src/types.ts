@@ -129,7 +129,7 @@ export type BrowserProps = {
 };
 export type FetchFunction = (params: FetchFunctionParams) => Promise<FetchResponse>;
 export type FinishFunction = (data: DirectLink) => void;
-export type ProgressFunction = (percent: number | "auto") => void;
+export type ProgressFunction = (percent: number | "auto" | "pause" | "resume") => void;
 export type FailedFunction = (status?: number, message?: string) => void;
 export type GetCacheFunction = <T>(key: string) => Promise<T | undefined>;
 export type SetCacheFunction = (key: string, value: any) => Promise<boolean>;

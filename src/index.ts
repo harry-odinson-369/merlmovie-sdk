@@ -421,9 +421,13 @@ export default class MerlMovieSDK {
                                                 break;
                                             }
                                         }
-                                    } else {
+                                    } else if (typeof arg === "number") {
                                         __temp_prog = arg;
                                         this._send_progress(ws, arg);
+                                    } else if (arg === "pause") {
+                                        __prog_paused = true;
+                                    } else if (arg === "resume") {
+                                        __prog_paused = false;
                                     }
                                 },
                                 finish: (data: DirectLink) => {
