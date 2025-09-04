@@ -377,8 +377,11 @@ export default class MerlMovieSDK {
             const request = new WSSRequestInfo(msg);
             const session_id = this.uniqueId;
             if (props.onConnection) props.onConnection(ws, request, session_id);
+            
             let __temp_prog: number = 0;
             let __prog_paused: boolean = false;
+            let __has_ended: boolean = false;
+
             const callback = (raw: RawData) => {
                 const wss_data = this._paseWSSData(raw.toString("utf-8"));
                 if (wss_data) {
@@ -431,14 +434,18 @@ export default class MerlMovieSDK {
                                     }
                                 },
                                 finish: (data: DirectLink) => {
+                                    if (__has_ended) return;
                                     __temp_prog = 100;
                                     __prog_paused = false;
+                                    __has_ended = true;
                                     this._send_progress(ws, 100);
                                     this._send_final_result(ws, data);
                                 },
                                 failed: (status, message) => {
+                                    if (__has_ended) return;
                                     __temp_prog = 100;
                                     __prog_paused = false;
+                                    __has_ended = true;
                                     this._send_failed(ws, status, message);
                                 },
                                 select: async (items: Array<WSSSelectModel>) => {
